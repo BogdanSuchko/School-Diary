@@ -11,6 +11,9 @@ let touchEndY = 0;
 let nameClickCount = 0;
 let adminPanelVisible = false;
 
+// Добавляем переменную для отслеживания режима удаления
+let deleteMode = false;
+
 if (!currentClass || !currentUser) {
     window.location.href = '/';
 }
@@ -165,6 +168,14 @@ function getDays() {
 }
 
 function openHomeworkModal(day, lesson, number) {
+    if (deleteMode && currentUser === 'Сучко Богдан') {
+        const homeworkKey = `${day}-${lesson}-${number}`;
+        if (confirm(`Удалить все домашние задания для урока "${lesson}" (${day}, урок ${number})?`)) {
+            deleteHomeworkForLesson(homeworkKey);
+        }
+        return;
+    }
+    
     currentDay = day;
     currentLesson = lesson;
     currentLessonNumber = number;
@@ -276,7 +287,7 @@ function logout() {
     window.location.href = '/';
 }
 
-// Добавляем функцию поиска
+// Обновляем функцию поиска, убирая кнопку удаления
 function addSearchFeature() {
     const container = document.querySelector('.schedule-container');
     const searchDiv = document.createElement('div');
@@ -286,10 +297,6 @@ function addSearchFeature() {
                id="searchHomework" 
                placeholder="Поиск по домашним заданиям..."
                class="search-input">
-        <button onclick="deleteAllHomework()" 
-                style="margin-top: 10px; padding: 8px 16px; background: #FF3B30; color: white; border: none; border-radius: 8px; cursor: pointer;">
-            Удалить все домашние задания
-        </button>
     `;
     container.insertBefore(searchDiv, container.firstChild);
 
@@ -406,7 +413,7 @@ async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
             const registration = await navigator.serviceWorker.register('/static/js/service-worker.js');
-            console.log('ServiceWorker зарегистрирован:', registration);
+            console.log('ServiceWorker зарегистрирова:', registration);
         } catch (error) {
             console.error('Ошибка при регистрации ServiceWorker:', error);
         }
@@ -559,6 +566,9 @@ function showAdminPanel() {
         <div class="admin-panel-content">
             <h3>Панель управления</h3>
             <button onclick="deleteAllHomework()" class="danger-btn">Очистить все домашние задания</button>
+            <button onclick="toggleDeleteMode()" class="warning-btn" id="deleteModeBtn">
+                ${deleteMode ? 'Выключить режим удаления' : 'Включить режим удаления'}
+            </button>
             <button onclick="closeAdminPanel()" class="secondary-btn">Закрыть</button>
         </div>
     `;
@@ -567,10 +577,41 @@ function showAdminPanel() {
     adminPanelVisible = true;
 }
 
+function toggleDeleteMode() {
+    deleteMode = !deleteMode;
+    const btn = document.getElementById('deleteModeBtn');
+    if (btn) {
+        btn.textContent = deleteMode ? 'Выключить режим удаления' : 'Включить режим удаления';
+        btn.classList.toggle('active');
+    }
+    showNotification(
+        'Режим удаления', 
+        deleteMode ? 'Режим удаления включен' : 'Режим удаления выключен',
+        deleteMode ? 'warning' : 'info'
+    );
+}
+
 function closeAdminPanel() {
     const adminPanel = document.querySelector('.admin-panel');
     if (adminPanel) {
         adminPanel.remove();
         adminPanelVisible = false;
+    }
+}
+
+// Добавляем функцию удаления конкретного домашнего задания
+async function deleteHomeworkForLesson(homeworkKey) {
+    try {
+        await db.collection('homework')
+            .doc(currentClass)
+            .collection('assignments')
+            .doc(homeworkKey)
+            .delete();
+            
+        showNotification('Успешно', 'Домашнее задание удалено', 'success');
+        loadSchedule(); // Перезагружаем расписание
+    } catch (error) {
+        console.error('Ошибка при удалении:', error);
+        showNotification('Ошибка', 'Не удалось удалить задание', 'error');
     }
 } 

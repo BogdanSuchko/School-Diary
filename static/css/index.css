@@ -1,0 +1,467 @@
+:root {
+    --primary-color: #0066FF;
+    --error-color: #FF3B30;
+    --text-primary: #1C1C1E;
+    --text-secondary: #6E6E73;
+    --background: #F5F5F7;
+    --card-background: #FFFFFF;
+    --border-color: #E5E5EA;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--background);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.container {
+    width: 100%;
+    max-width: 440px;
+}
+
+.login-card {
+    background: var(--card-background);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.login-header h2 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.login-header p {
+    color: var(--text-secondary);
+    font-size: 15px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 15px;
+    transition: all 0.2s ease;
+    background: var(--background);
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.1);
+}
+
+input::placeholder {
+    color: var(--text-secondary);
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+button:hover {
+    background-color: #0052CC;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+.error {
+    color: var(--error-color);
+    font-size: 14px;
+    margin-top: 16px;
+    text-align: center;
+    display: none;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        width: 100%;
+        padding: 16px;
+    }
+
+    .login-card {
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: none;
+    }
+
+    input {
+        font-size: 16px;
+        padding: 14px;
+        height: 48px;
+        -webkit-appearance: none;
+        appearance: none;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    input:focus {
+        box-shadow: 0 0 0 2px var(--primary-color);
+    }
+
+    button {
+        height: 48px;
+        background-color: var(--error-color);
+        font-size: 16px;
+        margin-top: 8px;
+    }
+
+    button:active {
+        background-color: #E0322A;
+        transform: scale(0.98);
+    }
+
+    .login-header h2 {
+        font-size: 22px;
+    }
+
+    .login-header p {
+        font-size: 14px;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    label {
+        font-size: 14px;
+        margin-bottom: 6px;
+    }
+
+    .error {
+        font-size: 13px;
+        padding: 8px;
+        background-color: rgba(255, 59, 48, 0.1);
+        border-radius: 8px;
+        margin-top: 12px;
+    }
+
+    .login-header h2,
+    .login-header p,
+    label {
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    body {
+        padding: 16px;
+        background-color: var(--card-background);
+    }
+
+    button, input {
+        touch-action: manipulation;
+    }
+}
+
+@media (max-width: 320px) {
+    .login-card {
+        padding: 16px;
+    }
+
+    .login-header {
+        margin-bottom: 24px;
+    }
+
+    input {
+        padding: 12px;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background: #1C1C1E;
+        --card-background: #2C2C2E;
+        --text-primary: #FFFFFF;
+        --text-secondary: #98989F;
+        --border-color: #3A3A3C;
+    }
+
+    input {
+        background: #3A3A3C;
+        color: white;
+    }
+
+    input::placeholder {
+        color: #98989F;
+    }
+
+    .login-card {
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    }
+}
+
+/* Добавляем стили для футера */
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 16px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-secondary);
+    background: linear-gradient(180deg, transparent, var(--background) 40%);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer a:hover {
+    color: #0052CC;
+}
+
+.footer-content {
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.telegram-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.telegram-link svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+@media (max-width: 768px) {
+    .footer {
+        padding: 12px;
+        font-size: 13px;
+    }
+    
+    body {
+        padding-bottom: 80px; /* Добавляем отступ для футера */
+    }
+}
+
+/* Добавляем стили для таблицы расписания */
+.schedule-table {
+    width: 100%;
+    min-width: 800px; /* Минимальная ширина таблицы */
+    border-collapse: separate; /* Изменено для лучшего контроля отступов */
+    border-spacing: 0;
+    font-size: 15px; /* Фиксированный размер шрифта */
+}
+
+.schedule-container {
+    width: 100%;
+    overflow-x: auto; /* Добавляем горизонтальную прокрутку */
+    -webkit-overflow-scrolling: touch; /* Плавная прокрутка на iOS */
+    position: relative;
+    margin: 20px 0;
+    border-radius: 16px;
+    background: var(--card-background);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    padding: 20px;
+    min-height: 200px; /* Минимальная высота */
+}
+
+.schedule-table th,
+.schedule-table td {
+    padding: 16px 20px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+    min-width: 230px; /* Фиксированная минимальная ширина */
+    height: 60px; /* Фиксированная высота для всех ячеек */
+    vertical-align: middle; /* Выравнивание по центру по вертикали */
+}
+
+/* Особые стили для первой колонки (дни недели) */
+.schedule-table th:first-child,
+.schedule-table td:first-child {
+    min-width: 150px; /* Можно сделать колонку с днями недели уже */
+    font-weight: 600;
+}
+
+.schedule-table th {
+    background: var(--background);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    font-size: 16px; /* Увеличенный размер шрифта заголовков */
+}
+
+/* Стили для мобильных устройств */
+@media (max-width: 768px) {
+    .schedule-container {
+        margin: 16px -16px; /* Расширяем контейнер на всю ширину экрана */
+        border-radius: 0;
+        
+        /* Добавляем индикатор прокрутки */
+        background: linear-gradient(to right, var(--card-background) 30%, rgba(255, 255, 255, 0)),
+                    linear-gradient(to left, var(--card-background) 30%, rgba(255, 255, 255, 0)) 100% 0;
+        background-size: 50px 100%, 50px 100%;
+        background-repeat: no-repeat;
+    }
+
+    .schedule-table {
+        font-size: 14px; /* Немного уменьшаем шрифт на мобильных */
+    }
+
+    .schedule-table th,
+    .schedule-table td {
+        min-width: 180px; /* Немного меньше на мобильных */
+        height: 55px; /* Немного меньше на мобильных */
+        padding: 12px 16px;
+    }
+
+    .schedule-table th:first-child,
+    .schedule-table td:first-child {
+        min-width: 120px;
+    }
+}
+
+/* Стили для тёмной темы */
+@media (prefers-color-scheme: dark) {
+    .schedule-table th {
+        background: var(--card-background);
+    }
+    
+    @media (max-width: 768px) {
+        .schedule-container {
+            background: linear-gradient(to right, var(--card-background) 30%, rgba(44, 44, 46, 0)),
+                        linear-gradient(to left, var(--card-background) 30%, rgba(44, 44, 46, 0)) 100% 0;
+            background-size: 50px 100%, 50px 100%;
+            background-repeat: no-repeat;
+        }
+    }
+} 
+
+/* Стили для карточек с заданиями */
+.homework-card {
+    background: var(--card-background);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 16px 0;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    min-height: 100px; /* Минимальная высота карточки */
+}
+
+/* Стили для контейнера с карточками */
+.cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px 0;
+}
+
+@media (max-width: 768px) {
+    .schedule-container {
+        margin: 16px -16px;
+        border-radius: 0;
+        padding: 16px;
+    }
+
+    .schedule-table th,
+    .schedule-table td {
+        padding: 14px 16px;
+        min-width: 100px;
+    }
+
+    .homework-card {
+        padding: 16px;
+        margin: 12px 0;
+    }
+
+    .cards-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 16px 0;
+    }
+}
+
+/* Добавляем стили для заголовков внутри карточек */
+.card-header {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.card-content {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+/* Улучшаем стили для тёмной темы */
+@media (prefers-color-scheme: dark) {
+    .schedule-container,
+    .homework-card {
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    }
+} 

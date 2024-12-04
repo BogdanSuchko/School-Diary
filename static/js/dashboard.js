@@ -7,12 +7,26 @@ let currentHomework = {};
 let touchStartY = 0;
 let touchEndY = 0;
 
+// Добавляем счетчик кликов и обработчик для админ-панели
+let nameClickCount = 0;
+let adminPanelVisible = false;
+
 if (!currentClass || !currentUser) {
     window.location.href = '/';
 }
 
 document.getElementById('userName').textContent = currentUser;
 document.getElementById('userClass').textContent = `Класс: ${currentClass}`;
+
+document.getElementById('userName').addEventListener('click', function() {
+    if (currentUser === 'Сучко Богдан') {
+        nameClickCount++;
+        if (nameClickCount === 5) {
+            showAdminPanel();
+            nameClickCount = 0;
+        }
+    }
+});
 
 async function loadSchedule() {
     try {
@@ -534,4 +548,29 @@ function addModalTouchHandlers() {
             }
         });
     });
+}
+
+function showAdminPanel() {
+    if (adminPanelVisible) return;
+    
+    const adminPanel = document.createElement('div');
+    adminPanel.className = 'admin-panel';
+    adminPanel.innerHTML = `
+        <div class="admin-panel-content">
+            <h3>Панель управления</h3>
+            <button onclick="deleteAllHomework()" class="danger-btn">Очистить все домашние задания</button>
+            <button onclick="closeAdminPanel()" class="secondary-btn">Закрыть</button>
+        </div>
+    `;
+    
+    document.body.appendChild(adminPanel);
+    adminPanelVisible = true;
+}
+
+function closeAdminPanel() {
+    const adminPanel = document.querySelector('.admin-panel');
+    if (adminPanel) {
+        adminPanel.remove();
+        adminPanelVisible = false;
+    }
 } 

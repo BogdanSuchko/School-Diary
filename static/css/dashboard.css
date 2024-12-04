@@ -1150,3 +1150,31 @@ button:not(.primary) {
     background: var(--border-color);
     color: var(--text-primary);
 }
+
+/* Добавляем стили для кнопки режима удаления */
+.warning-btn {
+    background: #FF9500;
+    color: white;
+}
+
+.warning-btn.active {
+    background: #FF3B30;
+}
+
+/* Добавляем стиль для карточек в режиме удаления */
+.delete-mode .lesson-card {
+    position: relative;
+}
+
+.delete-mode .lesson-card:hover::before {
+    content: '🗑️';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    background: rgba(255, 59, 48, 0.9);
+    padding: 8px;
+    border-radius: 8px;
+    color: white;
+}

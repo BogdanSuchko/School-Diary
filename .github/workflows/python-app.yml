@@ -1,0 +1,55 @@
+name: School Diary Deployment
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flask firebase-admin
+        pip install -r requirements.txt
+    
+    - name: Check code quality
+      run: |
+        pip install flake8
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        
+    - name: Verify static files
+      run: |
+        test -f static/css/index.css
+        test -f static/css/dashboard.css
+        test -f static/js/index.js
+        test -f static/js/dashboard.js
+        
+    - name: Verify templates
+      run: |
+        test -f templates/index.html
+        test -f templates/dashboard.html
+        
+    - name: Start Server
+      run: |
+        python app.py &  # Запускаем сервер в фоновом режиме
+        sleep 5  # Ждем пока сервер запустится
+        
+    - name: Test Server Response
+      run: |
+        curl -I http://localhost:5000 || (echo "Server failed to start" && exit 1)
+        echo "Server is running successfully"

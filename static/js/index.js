@@ -25,18 +25,193 @@ async function validateAndEnter() {
 
         const data = await response.json();
         if (data.success) {
-            localStorage.setItem('fullName', `${lastName} ${firstName}`);
-            localStorage.setItem('class', className);
-            window.location.href = '/dashboard';
+            // Сохраняем данные с использованием новой функции
+            if (saveUserData(lastName, firstName, className)) {
+                redirectToDashboard();
+            } else {
+                errorElement.textContent = 'Ошибка сохранения данных. Пожалуйста, убедитесь, что cookies разрешены';
+                errorElement.style.display = 'block';
+            }
         } else {
             errorElement.textContent = data.error;
             errorElement.style.display = 'block';
         }
     } catch (error) {
+        console.error('Login error:', error);
         errorElement.textContent = 'Произошла ошибка при входе';
         errorElement.style.display = 'block';
     }
 }
+
+// Обновляем функцию checkAuth для лучшей поддержки мобильных устройств
+function checkAuth() {
+    try {
+        // Проверяем сначала sessionStorage для быстрого доступа
+        let fullName = sessionStorage.getItem('fullName');
+        let className = sessionStorage.getItem('class');
+        let lastLogin = sessionStorage.getItem('lastLogin');
+
+        // Если данных нет в sessionStorage, проверяем localStorage
+        if (!fullName || !className || !lastLogin) {
+            fullName = localStorage.getItem('fullName');
+            className = localStorage.getItem('class');
+            lastLogin = localStorage.getItem('lastLogin');
+        }
+
+        if (!fullName || !className || !lastLogin) {
+            return false;
+        }
+
+        const lastLoginDate = new Date(lastLogin);
+        const now = new Date();
+        const daysSinceLastLogin = (now - lastLoginDate) / (1000 * 60 * 60 * 24);
+
+        // Увеличиваем период автологина для мобильных устройств
+        const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const maxDays = isMobile ? 60 : 7; // 60 дней для мобильных
+
+        return daysSinceLastLogin < maxDays;
+    } catch (error) {
+        console.error('Auth check error:', error);
+        return false;
+    }
+}
+
+// Обновляем функцию сохранения данных
+function saveUserData(lastName, firstName, className) {
+    try {
+        const userData = {
+            fullName: `${lastName} ${firstName}`,
+            class: className,
+            lastLogin: new Date().toISOString(),
+            isMobile: /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        };
+
+        // Сохраняем в обоих хранилищах
+        ['localStorage', 'sessionStorage'].forEach(storage => {
+            try {
+                window[storage].setItem('fullName', userData.fullName);
+                window[storage].setItem('class', userData.class);
+                window[storage].setItem('lastLogin', userData.lastLogin);
+                window[storage].setItem('isMobile', userData.isMobile);
+            } catch (e) {
+                console.error(`${storage} save error:`, e);
+            }
+        });
+
+        return true;
+    } catch (error) {
+        console.error('Storage error:', error);
+        return false;
+    }
+}
+
+// Добавляем функцию для восстановления сессии
+function restoreSession() {
+    try {
+        // Пробуем восстановить из sessionStorage сначала
+        let fullName = sessionStorage.getItem('fullName');
+        let className = sessionStorage.getItem('class');
+        
+        // Если нет в sessionStorage, пробуем из localStorage
+        if (!fullName || !className) {
+            fullName = localStorage.getItem('fullName');
+            className = localStorage.getItem('class');
+            
+            // Если нашли в localStorage, восстанавливаем в sessionStorage
+            if (fullName && className) {
+                sessionStorage.setItem('fullName', fullName);
+                sessionStorage.setItem('class', className);
+                sessionStorage.setItem('lastLogin', new Date().toISOString());
+            }
+        }
+        
+        return fullName && className;
+    } catch (error) {
+        console.error('Session restore error:', error);
+        return false;
+    }
+}
+
+// Функция для перенаправления
+function redirectToDashboard() {
+    try {
+        if (window.location.pathname === '/') {
+            // Используем более надежнй способ перенаправления
+            window.location.replace('/dashboard');
+            // Добавляем запасной вариант
+            setTimeout(() => {
+                if (window.location.pathname === '/') {
+                    window.location.href = '/dashboard';
+                }
+            }, 100);
+        }
+    } catch (error) {
+        console.error('Ошибка перенаправления:', error);
+        // Запасной вариант
+        window.location.href = '/dashboard';
+    }
+}
+
+// Обновляем немедленную проверку авторизации
+(function checkAuthAndRedirect() {
+    try {
+        if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
+            // Пробуем восстановить сессию
+            if (restoreSession() && checkAuth()) {
+                const currentTime = new Date().toISOString();
+                
+                // Обновляем время последнего входа в обоих хранилищах
+                ['localStorage', 'sessionStorage'].forEach(storage => {
+                    try {
+                        window[storage].setItem('lastLogin', currentTime);
+                    } catch (e) {
+                        console.error(`${storage} update error:`, e);
+                    }
+                });
+
+                redirectToDashboard();
+                return;
+            }
+        }
+    } catch (error) {
+        console.error('Initial auth check error:', error);
+    }
+})();
+
+// Добавляем обработчик для мобильных событий
+window.addEventListener('pageshow', function(event) {
+    // Проверяем, загружена ли страница из кэша
+    if (event.persisted) {
+        // Если страница из кэша, проверяем авторизацию
+        if (restoreSession() && checkAuth()) {
+            redirectToDashboard();
+        }
+    }
+});
+
+// Обновляем обработчик видимости для мобильных устройств
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        if (restoreSession() && checkAuth()) {
+            redirectToDashboard();
+        }
+    }
+});
+
+// Добавляем обработчик видимости страницы
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && checkAuth()) {
+        redirectToDashboard();
+    }
+});
+
+// Добавляем обработчик фокуса окна
+window.addEventListener('focus', function() {
+    if (checkAuth()) {
+        redirectToDashboard();
+    }
+});
 
 // Добавляем обработку Enter для всех полей ввода
 document.querySelectorAll('input').forEach(input => {
@@ -57,7 +232,7 @@ function handleFullscreenChange() {
                         document.webkitFullscreenElement || 
                         document.msFullscreenElement;
     
-    // Ваша логика обработки изменения полноэкранного режима
+    // Ваша лоика обработки изменения полноэкранного режима
     if (isFullscreen) {
         console.log('Вошли в полноэкранный режим');
     } else {

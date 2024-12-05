@@ -4,14 +4,32 @@ async function validateAndEnter() {
     const className = document.getElementById('class').value.trim();
     const errorElement = document.getElementById('error');
 
-    // Базовая валидация
+    // Улучшенная валидация
+    const nameRegex = /^[А-ЯЁа-яё\s-]{2,30}$/;
+    const classRegex = /^(?:[5-9][АБ]|10|11)$/;
+
     if (!lastName || !firstName || !className) {
         errorElement.textContent = 'Пожалуйста, заполните все поля';
         errorElement.style.display = 'block';
         return;
     }
 
+    if (!nameRegex.test(lastName) || !nameRegex.test(firstName)) {
+        errorElement.textContent = 'Имя и фамилия должны содержать только русские буквы, дефис и пробел';
+        errorElement.style.display = 'block';
+        return;
+    }
+
+    if (!classRegex.test(className)) {
+        errorElement.textContent = 'Доступные классы: 5А, 5Б, 6А, 6Б, 7А, 7Б, 8А, 8Б, 9А, 9Б, 10, 11';
+        errorElement.style.display = 'block';
+        return;
+    }
+
     try {
+        // Очищаем старые данные перед новым входом
+        clearAuthData();
+
         const response = await fetch('/api/validate_user', {
             method: 'POST',
             headers: {
@@ -25,7 +43,6 @@ async function validateAndEnter() {
 
         const data = await response.json();
         if (data.success) {
-            // Сохраняем данные с использованием новой функции
             if (saveUserData(lastName, firstName, className)) {
                 redirectToDashboard();
             } else {
@@ -68,7 +85,7 @@ function checkAuth() {
 
         // Увеличиваем период автологина для мобильных устройств
         const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const maxDays = isMobile ? 60 : 7; // 60 дней для мобильных
+        const maxDays = isMobile ? 60 : 7; // 60 дней для м��бильных
 
         return daysSinceLastLogin < maxDays;
     } catch (error) {
@@ -139,7 +156,7 @@ function redirectToDashboard() {
         if (window.location.pathname === '/') {
             // Используем более надежнй способ перенаправления
             window.location.replace('/dashboard');
-            // Добавляем запасной вариант
+            // Добавля��м запасной вариант
             setTimeout(() => {
                 if (window.location.pathname === '/') {
                     window.location.href = '/dashboard';
@@ -213,7 +230,7 @@ window.addEventListener('focus', function() {
     }
 });
 
-// Добавляем обработку Enter для всех полей ввода
+// Добавляем обработку Enter для всех полей в��ода
 document.querySelectorAll('input').forEach(input => {
     input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
@@ -249,4 +266,30 @@ function requestFullscreen(element) {
     } else if (element.msRequestFullscreen) {
         element.msRequestFullscreen();
     }
-} 
+}
+
+// Добавляем функцию для очистки всех данных авторизации
+function clearAuthData() {
+    try {
+        // Очищаем localStorage
+        localStorage.removeItem('fullName');
+        localStorage.removeItem('class');
+        localStorage.removeItem('lastLogin');
+        localStorage.removeItem('isMobile');
+        
+        // Очищаем sessionStorage
+        sessionStorage.removeItem('fullName');
+        sessionStorage.removeItem('class');
+        sessionStorage.removeItem('lastLogin');
+        sessionStorage.removeItem('isMobile');
+        
+        // Очищаем cookies
+        document.cookie.split(";").forEach(function(c) { 
+            document.cookie = c.replace(/^ +/, "")
+                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+        });
+    } catch (error) {
+        console.error('Clear auth data error:', error);
+    }
+}
+  

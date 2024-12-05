@@ -63,7 +63,7 @@ async function loadSchedule() {
             };
         });
         
-        console.log('Загружены домашние задания:', currentHomework);
+        console.log('Загружены домашние з��дания:', currentHomework);
         
         displaySchedule(schedule, currentHomework);
     } catch (error) {
@@ -170,7 +170,7 @@ function getDays() {
 function openHomeworkModal(day, lesson, number) {
     if (deleteMode && currentUser === 'Сучко Богдан') {
         const homeworkKey = `${day}-${lesson}-${number}`;
-        if (confirm(`Удалить все домашние задания для урока "${lesson}" (${day}, урок ${number})?`)) {
+        if (confirm(`Удалить все домашние задания д��я урока "${lesson}" (${day}, урок ${number})?`)) {
             deleteHomeworkForLesson(homeworkKey);
         }
         return;
@@ -282,9 +282,31 @@ window.onclick = function(event) {
 }
 
 function logout() {
-    localStorage.removeItem('fullName');
-    localStorage.removeItem('class');
-    window.location.href = '/';
+    try {
+        // Очищаем все данные авторизации
+        localStorage.removeItem('fullName');
+        localStorage.removeItem('class');
+        localStorage.removeItem('lastLogin');
+        localStorage.removeItem('isMobile');
+        
+        sessionStorage.removeItem('fullName');
+        sessionStorage.removeItem('class');
+        sessionStorage.removeItem('lastLogin');
+        sessionStorage.removeItem('isMobile');
+        
+        // Очищаем cookies
+        document.cookie.split(";").forEach(function(c) { 
+            document.cookie = c.replace(/^ +/, "")
+                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+        });
+
+        // Перенаправляем на страницу входа без возможности вернуться назад
+        window.location.replace('/');
+    } catch (error) {
+        console.error('Logout error:', error);
+        // Запасной вариант
+        window.location.href = '/';
+    }
 }
 
 // Обновляем функцию поиска, убирая кнопку удаления
@@ -313,7 +335,7 @@ function addSearchFeature() {
                 card.closest('.day-column').style.display = 'flex';
             } else {
                 card.style.display = 'none';
-                // Проверяем, есть ли видимые карточки в колонке
+                // Про��еряем, есть ли видимые карточки в колонке
                 const visibleCards = card.closest('.day-column').querySelectorAll('.lesson-card[style="display: flex;"]');
                 if (visibleCards.length === 0) {
                     card.closest('.day-column').style.display = 'none';
@@ -372,7 +394,7 @@ async function toggleHomeworkStatus(homeworkKey) {
                 statusBtn.textContent = isDone ? 'Выполнено' : 'Отметить как выполненное';
             }
 
-            showToast(isDone ? 'Задание отмечено как выполненное' : 'Отметка о выполнении снята');
+            showToast(isDone ? 'Задание отмечено ��ак выполненное' : 'Отметка о выполнении снята');
         }
     } catch (error) {
         console.error('Ошибка при обновлении статуса:', error);
@@ -599,7 +621,7 @@ function closeAdminPanel() {
     }
 }
 
-// Добавляем функцию удаления конкретного домашнего задания
+// Добавляе�� функцию удаления конкретного домашнего задания
 async function deleteHomeworkForLesson(homeworkKey) {
     try {
         await db.collection('homework')
@@ -614,4 +636,12 @@ async function deleteHomeworkForLesson(homeworkKey) {
         console.error('Ошибка при удалении:', error);
         showNotification('Ошибка', 'Не удалось удалить задание', 'error');
     }
-} 
+}
+
+// Добавляем обработчик для кнопки выхода
+document.addEventListener('DOMContentLoaded', function() {
+    const logoutButton = document.querySelector('.logout-button');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', logout);
+    }
+}); 

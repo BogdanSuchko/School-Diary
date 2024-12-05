@@ -63,7 +63,7 @@ async function loadSchedule() {
             };
         });
         
-        console.log('Загружены домашние з��дания:', currentHomework);
+        console.log('Загружены домашние здания:', currentHomework);
         
         displaySchedule(schedule, currentHomework);
     } catch (error) {
@@ -170,7 +170,7 @@ function getDays() {
 function openHomeworkModal(day, lesson, number) {
     if (deleteMode && currentUser === 'Сучко Богдан') {
         const homeworkKey = `${day}-${lesson}-${number}`;
-        if (confirm(`Удалить все домашние задания д��я урока "${lesson}" (${day}, урок ${number})?`)) {
+        if (confirm(`Удалить все домашние задания дя урока "${lesson}" (${day}, урок ${number})?`)) {
             deleteHomeworkForLesson(homeworkKey);
         }
         return;
@@ -335,7 +335,7 @@ function addSearchFeature() {
                 card.closest('.day-column').style.display = 'flex';
             } else {
                 card.style.display = 'none';
-                // Про��еряем, есть ли видимые карточки в колонке
+                // Проеряем, есть ли видимые карточки в колонке
                 const visibleCards = card.closest('.day-column').querySelectorAll('.lesson-card[style="display: flex;"]');
                 if (visibleCards.length === 0) {
                     card.closest('.day-column').style.display = 'none';
@@ -351,109 +351,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     addSearchFeature();
 });
 
-// Функция для отметки выполнения домашнего задания
-async function toggleHomeworkStatus(homeworkKey) {
-    try {
-        const docRef = db.collection('homework')
-            .doc(currentClass)
-            .collection('assignments')
-            .doc(homeworkKey);
-            
-        const doc = await docRef.get();
-        if (doc.exists) {
-            const data = doc.data();
-            // Создаем или получаем объект с отметками выполнения для разных пользователей
-            const completedBy = data.completedBy || {};
-            // Инвертируем статус для текущего пользователя
-            const isDone = !completedBy[currentUser];
-            
-            // Обновляем статус только для текущего пользователя
-            await docRef.update({
-                [`completedBy.${currentUser}`]: isDone ? {
-                    done: true,
-                    doneAt: new Date().toISOString()
-                } : firebase.firestore.FieldValue.delete()
-            });
-
-            // Обновляем локальные данные
-            if (currentHomework[homeworkKey]) {
-                if (!currentHomework[homeworkKey].current.completedBy) {
-                    currentHomework[homeworkKey].current.completedBy = {};
-                }
-                currentHomework[homeworkKey].current.completedBy[currentUser] = {
-                    done: isDone,
-                    doneAt: new Date().toISOString()
-                };
-            }
-
-            // Обновляем UI
-            const homeworkCard = document.querySelector(`[data-homework-key="${homeworkKey}"]`);
-            if (homeworkCard) {
-                const statusBtn = homeworkCard.querySelector('.status-btn');
-                statusBtn.classList.toggle('done', isDone);
-                statusBtn.textContent = isDone ? 'Выполнено' : 'Отметить как выполненное';
-            }
-
-            showToast(isDone ? 'Задание отмечено ��ак выполненное' : 'Отметка о выполнении снята');
-        }
-    } catch (error) {
-        console.error('Ошибка при обновлении статуса:', error);
-        showNotification('Ошибка', 'Не удалось обновить статус задания', 'error');
-    }
-}
-
-// Обновление UI при изменении статуса
-function updateHomeworkUI(homeworkKey, isDone) {
-    const card = document.querySelector(`[data-homework-key="${homeworkKey}"]`);
-    if (card) {
-        const statusBtn = card.querySelector('.status-btn');
-        statusBtn.classList.toggle('done', isDone);
-        statusBtn.textContent = isDone ? 'Выполнено' : 'Отметить как выполненное';
-    }
-}
-
-// Функция для проверки несделанных заданий
-async function checkUnfinishedHomework() {
-    const now = new Date();
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    const unfinishedHomework = Object.entries(currentHomework)
-        .filter(([key, hw]) => !hw.current.done)
-        .length;
-
-    if (unfinishedHomework > 0) {
-        sendNotification(
-            'Невыполненные задания',
-            `У вас ${unfinishedHomework} невыполненных заданий`
-        );
-    }
-}
-
-// Регистрация Service Worker для push-уведомлений
-async function registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
-        try {
-            const registration = await navigator.serviceWorker.register('/static/js/service-worker.js');
-            console.log('ServiceWorker зарегистрирова:', registration);
-        } catch (error) {
-            console.error('Ошибка при регистрации ServiceWorker:', error);
-        }
-    }
-}
-
-// Обновляем функцию отображения домашнего задания
+// Обновляем функцию отображения домашнего задания, убирая отметки о выполнении
 function displayHomework(homeworkData, card) {
     if (!homeworkData || !homeworkData.current) return;
 
     const homeworkContent = document.createElement('div');
     homeworkContent.className = `homework-card ${homeworkData.type || ''}`;
     homeworkContent.setAttribute('data-homework-key', homeworkData.key);
-    
-    // Проверяем, выполнено ли задание текущим пользователем
-    const isCompletedByCurrentUser = homeworkData.current.completedBy && 
-                                   homeworkData.current.completedBy[currentUser] && 
-                                   homeworkData.current.completedBy[currentUser].done;
     
     let homeworkHtml = `
         <div class="homework-text">${homeworkData.current.homework}</div>
@@ -462,12 +366,6 @@ function displayHomework(homeworkData, card) {
             ${homeworkData.history?.length > 0 ? 
                 `<br><span class="edit-count">(изменений: ${homeworkData.history.length})</span>` : 
                 ''}
-        </div>
-        <div class="homework-status">
-            <button class="status-btn ${isCompletedByCurrentUser ? 'done' : ''}"
-                    onclick="event.stopPropagation(); toggleHomeworkStatus('${homeworkData.key}')">
-                ${isCompletedByCurrentUser ? 'Выполнено' : 'Отметить как выполненное'}
-            </button>
         </div>
     `;
     
@@ -621,7 +519,7 @@ function closeAdminPanel() {
     }
 }
 
-// Добавляе�� функцию удаления конкретного домашнего задания
+// Добавляе функцию удаления конкретного домашнего задания
 async function deleteHomeworkForLesson(homeworkKey) {
     try {
         await db.collection('homework')

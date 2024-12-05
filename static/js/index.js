@@ -4,7 +4,7 @@ async function validateAndEnter() {
     const className = document.getElementById('class').value.trim();
     const errorElement = document.getElementById('error');
 
-    // Улучшенная валидация
+    // Улучшенная валидация с поддержкой Ё
     const nameRegex = /^[А-ЯЁа-яё\s-]{2,30}$/;
     const classRegex = /^(?:[5-9][АБ]|10|11)$/;
 
@@ -15,7 +15,7 @@ async function validateAndEnter() {
     }
 
     if (!nameRegex.test(lastName) || !nameRegex.test(firstName)) {
-        errorElement.textContent = 'Имя и фамилия должны содержать только русские буквы, дефис и пробел';
+        errorElement.textContent = 'Имя и фамилия должны содержать только русские буквы (включая Ё), дефис и пробел';
         errorElement.style.display = 'block';
         return;
     }
@@ -85,7 +85,7 @@ function checkAuth() {
 
         // Увеличиваем период автологина для мобильных устройств
         const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const maxDays = isMobile ? 60 : 7; // 60 дней для м��бильных
+        const maxDays = isMobile ? 60 : 7; // 60 дней для мбильных
 
         return daysSinceLastLogin < maxDays;
     } catch (error) {
@@ -156,7 +156,7 @@ function redirectToDashboard() {
         if (window.location.pathname === '/') {
             // Используем более надежнй способ перенаправления
             window.location.replace('/dashboard');
-            // Добавля��м запасной вариант
+            // Добавлям запасной вариант
             setTimeout(() => {
                 if (window.location.pathname === '/') {
                     window.location.href = '/dashboard';
@@ -230,7 +230,7 @@ window.addEventListener('focus', function() {
     }
 });
 
-// Добавляем обработку Enter для всех полей в��ода
+// Добавляем об��аботку Enter для всех полей вода
 document.querySelectorAll('input').forEach(input => {
     input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {

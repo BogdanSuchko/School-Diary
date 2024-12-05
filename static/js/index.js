@@ -4,8 +4,8 @@ async function validateAndEnter() {
     const className = document.getElementById('class').value.trim();
     const errorElement = document.getElementById('error');
 
-    // Улучшенная валидация с поддержкой Ё
-    const nameRegex = /^[А-ЯЁа-яё\s-]{2,30}$/;
+    // Проверка только на русские буквы
+    const nameRegex = /^[А-ЯЁа-яё\s-]+$/;
     const classRegex = /^(?:[5-9][АБ]|10|11)$/;
 
     if (!lastName || !firstName || !className) {
@@ -15,7 +15,7 @@ async function validateAndEnter() {
     }
 
     if (!nameRegex.test(lastName) || !nameRegex.test(firstName)) {
-        errorElement.textContent = 'Имя и фамилия должны содержать только русские буквы (включая Ё), дефис и пробел';
+        errorElement.textContent = 'Имя и фамилия должны содержать только русские буквы, дефис или пробел';
         errorElement.style.display = 'block';
         return;
     }
@@ -30,19 +30,24 @@ async function validateAndEnter() {
         // Очищаем старые данные перед новым входом
         clearAuthData();
 
+        // Заменяем ё на е для сохранения
+        const normalizedLastName = lastName.replace(/ё/gi, 'е');
+        const normalizedFirstName = firstName.replace(/ё/gi, 'е');
+
         const response = await fetch('/api/validate_user', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                full_name: `${lastName} ${firstName}`,
+                full_name: `${normalizedLastName} ${normalizedFirstName}`,
                 class: className
             })
         });
 
         const data = await response.json();
         if (data.success) {
+            // Сохраняем оригинальное имя с буквой ё
             if (saveUserData(lastName, firstName, className)) {
                 redirectToDashboard();
             } else {
@@ -170,11 +175,11 @@ function redirectToDashboard() {
     }
 }
 
-// Обновляем немедленную проверку авторизации
+// Обновляем емедленную проверку авторизации
 (function checkAuthAndRedirect() {
     try {
         if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
-            // Пробуем восстановить сессию
+            // Пробуем в��сстановить сессию
             if (restoreSession() && checkAuth()) {
                 const currentTime = new Date().toISOString();
                 
@@ -200,7 +205,7 @@ function redirectToDashboard() {
 window.addEventListener('pageshow', function(event) {
     // Проверяем, загружена ли страница из кэша
     if (event.persisted) {
-        // Если страница из кэша, проверяем авторизацию
+        // Если траница из кэша, проверяем авторизацию
         if (restoreSession() && checkAuth()) {
             redirectToDashboard();
         }
@@ -230,7 +235,7 @@ window.addEventListener('focus', function() {
     }
 });
 
-// Добавляем об��аботку Enter для всех полей вода
+// Добавляем обаботку Enter для всех полей вода
 document.querySelectorAll('input').forEach(input => {
     input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 import json
 from datetime import datetime
 import os
@@ -34,7 +34,7 @@ def validate_full_name(full_name):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return send_file('index.html')
 
 @app.route('/api/validate_user', methods=['POST'])
 def validate_user():

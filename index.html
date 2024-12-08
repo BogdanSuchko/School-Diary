@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Школьный дневник</title>
+    <!-- Обновляем пути к файлам CSS -->
+    <link rel="stylesheet" href="static/css/index.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="login-card">
+            <div class="login-header">
+                <h2>Электронный дневник</h2>
+                <p>Добро пожаловать! Введите ваши данные для входа.</p>
+            </div>
+            <div class="login-form">
+                <div class="form-group">
+                    <label for="lastName">Фамилия</label>
+                    <input type="text" id="lastName" placeholder="Введите фамилию" required>
+                </div>
+                <div class="form-group">
+                    <label for="firstName">Имя</label>
+                    <input type="text" id="firstName" placeholder="Введите имя" required>
+                </div>
+                <div class="form-group">
+                    <label for="class">Класс</label>
+                    <input type="text" id="class" placeholder="Например: 5А" required>
+                </div>
+                <button onclick="validateAndEnter()">Войти в дневник</button>
+                <p id="error" class="error"></p>
+            </div>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="footer-content">
+            <div>© 2024 School Diary. Разработано Богданом</div>
+            <div class="footer-links">
+                <a href="https://t.me/julfy_coding" target="_blank" class="telegram-link">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.52-1.4.51-.46-.01-1.35-.26-2.01-.48-.81-.27-1.46-.42-1.4-.88.03-.24.37-.48 1.03-.74 4.04-1.76 6.74-2.92 8.09-3.48 3.85-1.6 4.64-1.88 5.17-1.89.11 0 .37.03.54.17.14.12.18.28.2.45-.02.05-.02.31-.02.31z"/>
+                    </svg>
+                    Программирование с Богданом
+                </a>
+            </div>
+        </div>
+    </footer>
+    <div id="notification-container"></div>
+    <!-- Обновляем путь к JavaScript файлу -->
+    <script src="static/js/index.js"></script>
+</body>
+</html> 

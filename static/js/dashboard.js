@@ -14,6 +14,9 @@ let adminPanelVisible = false;
 // Добавляем переменную для отслеживания режима удаления
 let deleteMode = false;
 
+// Обновляем глобальные переменные для аутентификации
+let isGoogleUser = false;
+
 if (!currentClass || !currentUser) {
     window.location.href = '/';
 }
@@ -75,7 +78,7 @@ async function loadSchedule() {
 
 // Функция отображения домашних заданий обновлена для работы с Firebase
 function displaySchedule(schedule, homework) {
-    const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница'];
+    const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
     const { today, tomorrow } = getDays();
     
     console.log('Расписание:', schedule);
@@ -87,7 +90,7 @@ function displaySchedule(schedule, homework) {
         
         const dayColumn = document.querySelector(`.day-column[data-day="${day}"]`);
         if (!dayColumn) {
-            console.error(`Не найдена колонка для дня недели: ${day}`);
+            console.error(`Не найдена колонка для дня не��ели: ${day}`);
             return;
         }
         
@@ -152,14 +155,16 @@ function getDays() {
     const today = new Date().getDay();
     let tomorrow = today + 1;
     
-    if (tomorrow === 6) tomorrow = 1;
-    if (today === 6) tomorrow = 1;
+    // Если сегодня воскресенье (0), завтра будет понедельник (1)
     if (today === 0) {
         return {
-            today: days[1],
-            tomorrow: days[2]
+            today: days[0],
+            tomorrow: days[1]
         };
     }
+    
+    // Если завтра выходит за пределы недели, возвращаемся к понедельнику
+    if (tomorrow === 7) tomorrow = 1;
     
     return {
         today: days[today],
@@ -168,9 +173,15 @@ function getDays() {
 }
 
 function openHomeworkModal(day, lesson, number) {
+    // Проверяем, авторизован ли пользователь через Google
+    if (!isGoogleUser && currentUser === 'Гость') {
+        showNotification('Ошибка', 'Для добавления домашних заданий войдите через Google', 'error');
+        return;
+    }
+
     if (deleteMode && currentUser === 'Сучко Богдан') {
         const homeworkKey = `${day}-${lesson}-${number}`;
-        if (confirm(`Удалить все домашние задания дя урока "${lesson}" (${day}, урок ${number})?`)) {
+        if (confirm(`Удалить все домашние задания для урока "${lesson}" (${day}, урок ${number})?`)) {
             deleteHomeworkForLesson(homeworkKey);
         }
         return;
@@ -361,12 +372,14 @@ function displayHomework(homeworkData, card) {
     
     let homeworkHtml = `
         <div class="homework-text">${homeworkData.current.homework}</div>
+        ${isGoogleUser ? `
         <div class="homework-author">
-            Добавил(а): ${homeworkData.current.author}
+            Добаил(а): ${homeworkData.current.author}
             ${homeworkData.history?.length > 0 ? 
                 `<br><span class="edit-count">(изменений: ${homeworkData.history.length})</span>` : 
                 ''}
         </div>
+        ` : ''}
     `;
     
     homeworkContent.innerHTML = homeworkHtml;

@@ -1,0 +1,1228 @@
+:root {
+    --primary-color: #0066FF;
+    --error-color: #FF3B30;
+    --text-primary: #1C1C1E;
+    --text-secondary: #6E6E73;
+    --background: #F5F5F5;
+    --card-background: #FFFFFF;
+    --border-color: #E5E5EA;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--background);
+    color: var(--text-primary);
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    background: var(--card-background);
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-info span {
+    padding: 6px 12px;
+    background: var(--primary-color);
+    border-radius: 6px;
+    font-size: 13px;
+    color: white;
+}
+
+.logout-btn {
+    padding: 6px 12px;
+    background-color: var(--error-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    height: 32px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(255, 59, 48, 0.2);
+}
+
+.logout-btn:hover {
+    background-color: var(--error-color);
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(255, 59, 48, 0.3);
+}
+
+.logout-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 1px 2px rgba(255, 59, 48, 0.2);
+}
+
+.schedule-container {
+    background: var(--card-background);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 15px;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 15px;
+}
+
+.day-column {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 400px;
+    max-height: calc(100vh - 200px);
+    padding: 16px;
+    background: var(--background);
+    border-radius: 12px;
+    position: relative;
+    transition: all 0.3s ease;
+    overflow-y: auto;
+    margin-top: 10px;
+}
+
+.day-column h3 {
+    margin-bottom: 12px;
+    position: sticky;
+    top: 0;
+    padding: 4px 0;
+    z-index: 1;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    background: inherit;
+}
+
+.lesson-card {
+    padding: 16px;
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: var(--card-background);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid var(--border-color);
+}
+
+.lesson-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.lesson-number {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+}
+
+.lesson-name {
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.homework-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px solid var(--border-color);
+}
+
+.homework-author {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-align: right;
+    margin-top: 4px;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--card-background);
+    padding: 24px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+}
+
+.modal-content h2 {
+    margin-bottom: 16px;
+}
+
+#selectedLesson {
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+textarea {
+    width: 100%;
+    height: 120px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+button.primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+button:not(.primary) {
+    background: var(--background);
+    color: var(--text-primary);
+}
+
+.no-lessons {
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 20px;
+    font-size: 14px;
+    background: var(--background);
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+.day-column.current-day {
+    border: 2px solid var(--primary-color);
+    background: linear-gradient(to bottom, rgba(0, 102, 255, 0.05), transparent);
+    box-shadow: 0 4px 12px rgba(0, 102, 255, 0.15);
+}
+
+.day-column.tomorrow {
+    border: 2px solid #FFB800;
+    background: linear-gradient(to bottom, rgba(255, 184, 0, 0.05), transparent);
+    box-shadow: 0 4px 12px rgba(255, 184, 0, 0.15);
+}
+
+.homework-history {
+    margin-bottom: 16px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.history-item {
+    padding: 12px;
+    background: var(--background);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.history-item:last-child {
+    margin-bottom: 0;
+}
+
+.history-header {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.history-author {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    text-align: right;
+}
+
+.lessons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: calc(100vh - 250px);
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.lessons::-webkit-scrollbar {
+    width: 4px;
+}
+
+.lessons::-webkit-scrollbar-track {
+    background: var(--background);
+    border-radius: 4px;
+}
+
+.lessons::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+@media (max-width: 1200px) {
+    .days {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .day-column {
+        padding: 8px;
+    }
+    
+    .lesson-card {
+        padding: 8px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+
+    header {
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .user-info {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .user-info span,
+    .reminder-btn,
+    .logout-btn {
+        width: 100%;
+        justify-content: center;
+        height: 40px;
+    }
+
+    .reminder-btn,
+    .logout-btn {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+
+    .days {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .day-column {
+        margin-top: 0 !important;
+        margin-bottom: 16px;
+    }
+
+    .lessons {
+        max-height: none;
+    }
+
+    .lesson-card {
+        padding: 12px;
+        border-radius: 8px;
+    }
+
+    .lesson-card, 
+    button {
+        min-height: 44px;
+    }
+
+    .lesson-name {
+        font-size: 16px;
+    }
+
+    .homework-text {
+        font-size: 14px;
+    }
+
+    .modal-content {
+        width: 95%;
+        max-height: 90vh;
+        padding: 15px;
+        border-radius: 12px;
+    }
+
+    textarea {
+        font-size: 16px;
+    }
+
+    .search-input {
+        font-size: 16px;
+        padding: 12px;
+    }
+
+    .day-column:last-child {
+        margin-bottom: 60px;
+    }
+
+    .status-btn,
+    .reminder-btn,
+    .modal-buttons button {
+        min-height: 44px;
+        padding: 12px 20px;
+        font-size: 16px;
+    }
+
+    .modal-content {
+        padding: 20px;
+        width: 90%;
+        max-width: none;
+    }
+
+    .homework-text {
+        font-size: 16px;
+        line-height: 1.4;
+    }
+
+    .lessons {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .notification {
+        width: 90%;
+        max-width: none;
+        margin: 10px;
+    }
+
+    .toast {
+        width: 90%;
+        max-width: none;
+        margin: 0 auto 10px;
+    }
+}
+
+@media (max-width: 320px) {
+    .container {
+        padding: 5px;
+    }
+
+    .lesson-card {
+        padding: 10px;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .days {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.day-column.current-day,
+.day-column.tomorrow {
+    margin-top: 0 !important;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.day-column.current-day {
+    border: 2px solid var(--primary-color);
+    background: linear-gradient(to bottom, rgba(0, 102, 255, 0.05), transparent);
+    box-shadow: 0 4px 12px rgba(0, 102, 255, 0.15);
+}
+
+.day-column.tomorrow {
+    border: 2px solid #FFB800;
+    background: linear-gradient(to bottom, rgba(255, 184, 0, 0.05), transparent);
+    box-shadow: 0 4px 12px rgba(255, 184, 0, 0.15);
+}
+
+.day-column.current-day::before,
+.day-column.tomorrow::before {
+    content: 'Сегодня';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 2px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    z-index: 2;
+    white-space: nowrap;
+    line-height: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    letter-spacing: 0.3px;
+}
+
+.day-column.current-day::before {
+    background: var(--primary-color);
+    color: white;
+}
+
+.day-column.tomorrow::before {
+    content: 'Завтра';
+    background: #FFB800;
+    color: white;
+}
+
+.day-column.current-day::after,
+.day-column.tomorrow::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 12px;
+    pointer-events: none;
+}
+
+.day-column.current-day::after {
+    box-shadow: inset 0 0 20px rgba(0, 102, 255, 0.05);
+}
+
+.day-column.tomorrow::after {
+    box-shadow: inset 0 0 20px rgba(255, 184, 0, 0.05);
+}
+
+.week-status-message {
+    background: var(--primary-color);
+    color: white;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 500;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.week-end-message {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.week-end-message h2 {
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}
+
+.week-end-message p {
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.homework-stats {
+    display: flex;
+    gap: 20px;
+    padding: 10px 20px;
+    background: var(--background);
+    border-radius: 8px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.search-container {
+    margin-bottom: 20px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 14px;
+    background: var(--background);
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+}
+
+.grade-section {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.grades-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.grade-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.grades-list {
+    display: flex;
+    gap: 4px;
+}
+
+.grade {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.grade-5 {
+    background: #34C759;
+    color: white;
+}
+
+.grade-4 {
+    background: #5856D6;
+    color: white;
+}
+
+.grade-3 {
+    background: #FF9500;
+    color: white;
+}
+
+.grade-2 {
+    background: #FF3B30;
+    color: white;
+}
+
+.add-grade-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--background);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.add-grade-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.grade-modal .grade-options {
+    display: flex;
+    gap: 8px;
+    margin: 16px 0;
+    justify-content: center;
+}
+
+.grade-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.grade-type select {
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 16px;
+}
+
+.grade-comment textarea {
+    width: 100%;
+    height: 80px;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    resize: none;
+}
+
+.attendance-btn {
+    margin-left: 8px;
+    padding: 4px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    position: relative;
+    color: var(--text-secondary);
+}
+
+.attendance-btn.present {
+    color: #34C759;
+}
+
+.attendance-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+}
+
+.attendance-btn:hover .attendance-tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+.reminder-btn {
+    padding: 6px 12px;
+    background: var(--background);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    font-size: 13px;
+    color: var(--text-primary);
+    height: 32px;
+}
+
+.reminder-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.reminder-btn i {
+    font-size: 14px;
+}
+
+.reminder-time-picker,
+.reminder-repeat {
+    margin-bottom: 20px;
+}
+
+.reminder-time-picker label,
+.reminder-repeat label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+}
+
+.reminder-time-picker input,
+.reminder-repeat select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+/* Стили для отметки выполнения */
+.homework-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+}
+
+.status-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--background);
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.status-btn.done {
+    background: #34C759;
+    color: white;
+    border-color: #34C759;
+}
+
+/* Стили для разных типов заданий */
+.homework-card.test {
+    border-left: 4px solid #FF3B30;
+}
+
+.homework-card.quiz {
+    border-left: 4px solid #FF9500;
+}
+
+.homework-type-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.homework-type-badge.test {
+    background: #FF3B30;
+    color: white;
+}
+
+.homework-type-badge.quiz {
+    background: #FF9500;
+    color: white;
+}
+
+.reminder-modal {
+    max-width: 400px;
+}
+
+.reminder-time-picker,
+.reminder-repeat {
+    margin-bottom: 20px;
+}
+
+.reminder-time-picker label,
+.reminder-repeat label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+}
+
+.reminder-time-picker input,
+.reminder-repeat select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+/* Стили для уведомлений */
+.notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.notification {
+    background: var(--card-background);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    min-width: 300px;
+    max-width: 400px;
+    animation: slideIn 0.3s ease;
+}
+
+.notification.success {
+    border-left: 4px solid #34C759;
+}
+
+.notification.error {
+    border-left: 4px solid #FF3B30;
+}
+
+.notification.info {
+    border-left: 4px solid #0066FF;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.notification-message {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px;
+}
+
+/* Стили для тостов */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+
+.toast {
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Добавим стили для устройств с вырезами (notch) */
+@supports (padding-top: env(safe-area-inset-top)) {
+    .container {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
+}
+
+.day-column[data-day="Понедельник"],
+.day-column[data-day="Вторник"],
+.day-column[data-day="Среда"],
+.day-column[data-day="Четверг"],
+.day-column[data-day="Пятница"],
+.day-column.current-day,
+.day-column.tomorrow {
+    margin-top: 0 !important;
+}
+
+.day-column:hover {
+    transform: none !important;
+    margin-top: 0 !important;
+}
+
+.day-column.current-day::before,
+.day-column.tomorrow::before {
+    content: 'Сегодня';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary-color);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 500;
+    z-index: 2;
+    white-space: nowrap;
+    line-height: 14px;
+}
+
+.day-column.tomorrow::before {
+    content: 'Завтра';
+    background: #FFB800;
+}
+
+/* Добавляем специальные стили для среды, где больше уроков */
+.day-column[data-day="Среда"] .lesson-card {
+    padding: 16px;
+    min-height: 60px;
+}
+
+.day-column[data-day="Среда"] .lesson-name {
+    font-size: 15px;
+}
+
+.day-column[data-day="Среда"] .homework-text {
+    font-size: 12px;
+}
+
+.day-column.current-day,
+.day-column.tomorrow {
+    margin-top: 8px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+}
+
+.day-column.current-day {
+    border-color: var(--primary-color);
+}
+
+.day-column.tomorrow {
+    border-color: #FFB800;
+}
+
+/* Добавляем стили для футера */
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 16px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-secondary);
+    background: linear-gradient(180deg, transparent, var(--background) 40%);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 100;
+}
+
+.footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer a:hover {
+    color: #0052CC;
+}
+
+.footer-content {
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.telegram-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.telegram-link svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+/* Добавляем отступ для контента, чтобы футер не перекрывал */
+.container {
+    padding-bottom: 80px;
+}
+
+@media (max-width: 768px) {
+    .footer {
+        padding: 12px;
+        font-size: 13px;
+    }
+}
+
+.admin-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.admin-panel-content {
+    background: var(--card-background);
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    width: 90%;
+}
+
+.admin-panel h3 {
+    margin-bottom: 16px;
+    color: var(--text-primary);
+}
+
+.admin-panel button {
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.danger-btn {
+    background: var(--error-color);
+    color: white;
+}
+
+.secondary-btn {
+    background: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* Добавляем стили для кнопки режима удаления */
+.warning-btn {
+    background: #FF9500;
+    color: white;
+}
+
+.warning-btn.active {
+    background: #FF3B30;
+}
+
+/* Добавляем стиль для карточек в режиме удаления */
+.delete-mode .lesson-card {
+    position: relative;
+}
+
+.delete-mode .lesson-card:hover::before {
+    content: '🗑️';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    background: rgba(255, 59, 48, 0.9);
+    padding: 8px;
+    border-radius: 8px;
+    color: white;
+}
+
+/* Добавляем стили для выходных дней */
+.day-column.weekend {
+    background-color: rgba(0, 0, 0, 0.02);
+    margin-top: 0 !important;
+}
+
+.day-column.weekend h3 {
+    color: #999;
+}
+
+.day-column.weekend .no-lessons {
+    color: #999;
+    font-style: italic;
+}
+
+/* Убираем эффект при наведении */
+.day-column.weekend:hover {
+    transform: none;
+    margin-top: 0 !important;
+}
+
+/* Обновляем стили контейнера для поддержки 7 колонок */
+.days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 15px;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 15px;
+}
+
+@media (max-width: 1200px) {
+    .days {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .days {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .days {
+        grid-template-columns: 1fr;
+    }
+}

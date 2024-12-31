@@ -1,4 +1,4 @@
 flask
 firebase-admin
 gunicorn
-netlify-lambda-wsgi
+git+https://github.com/Miserlou/Netlify-Lambda-WSGI.git

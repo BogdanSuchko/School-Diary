@@ -1,6 +1,4 @@
-flask==3.1.0
-firebase-admin==6.6.0
-Werkzeug>=3.1.0
-Jinja2==3.1.2
-python-dotenv==1.0.0
-gunicorn==21.2.0 
+flask
+firebase-admin
+gunicorn
+netlify-lambda-wsgi 

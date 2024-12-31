@@ -1,22 +1,17 @@
-# Игнорировать Google Cloud Credentials
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+
+# Firebase
 serviceAccountKey.json
 
-# Игнорировать временные файлы редакторов
-*.log
-*.tmp
-*.swp
-*.swo
-*.bak
+# Netlify
+.netlify/
+node_modules/
 
-# Игнорировать настройки IDE
+# IDE
 .vscode/
 .idea/
-
-# Игнорировать окружение Python
-env/
-venv/
-*.pyc
-__pycache__/
-
-# Игнорировать кэш NPM (если используешь JS)
-node_modules/

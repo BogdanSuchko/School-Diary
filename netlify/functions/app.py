@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 import firebase_admin
 from firebase_admin import credentials, firestore
-from netlify_lambda_wsgi import make_aws_lambda_wsgi_handler
+import awsgi
 
 app = Flask(__name__, 
            static_folder='static',
@@ -58,5 +58,6 @@ def homework():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Этот обработчик превращает Flask-приложение в serverless функцию
-handler = make_aws_lambda_wsgi_handler(app) 
+# Изменили обработчик
+def handler(event, context):
+    return awsgi.response(app, event, context) 

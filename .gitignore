@@ -6,7 +6,7 @@ venv/
 env/
 
 # Firebase
-serviceAccountKey.json
+netlify/functions/serviceAccountKey.json
 
 # Netlify
 .netlify/

@@ -5,8 +5,16 @@
 
 [build.environment]
   PYTHON_VERSION = "3.9"
+  NODE_VERSION = "14"
+  PIP_NO_CACHE_DIR = "off"
 
 [[redirects]]
   from = "/*"
   to = "/.netlify/functions/app"
-  status = 200 
+  status = 200
+  force = true
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["express"]
+  included_files = ["serviceAccountKey.json", "data.json"] 

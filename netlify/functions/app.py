@@ -58,5 +58,5 @@ def homework():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Обработчик для AWS Lambda
+# Этот обработчик превращает Flask-приложение в serverless функцию
 handler = make_aws_lambda_wsgi_handler(app) 

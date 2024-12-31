@@ -1,4 +1,4 @@
 flask
 firebase-admin
 gunicorn
-netlify-lambda-wsgi 
+netlify-lambda-wsgi

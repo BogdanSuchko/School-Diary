@@ -1,4 +1,4 @@
 flask
 firebase-admin
 gunicorn
-aws-wsgi
+aws-wsgi>=0.2.7

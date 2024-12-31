@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 import firebase_admin
 from firebase_admin import credentials, firestore
-import awsgi
+from aws_wsgi import make_lambda_handler
 
 app = Flask(__name__, 
            static_folder='static',
@@ -58,6 +58,5 @@ def homework():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Изменили обработчик
-def handler(event, context):
-    return awsgi.response(app, event, context) 
+# Исправили обработчик
+handler = make_lambda_handler(app) 

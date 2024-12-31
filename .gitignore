@@ -1,0 +1,22 @@
+# Игнорировать Google Cloud Credentials
+serviceAccountKey.json
+
+# Игнорировать временные файлы редакторов
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+
+# Игнорировать настройки IDE
+.vscode/
+.idea/
+
+# Игнорировать окружение Python
+env/
+venv/
+*.pyc
+__pycache__/
+
+# Игнорировать кэш NPM (если используешь JS)
+node_modules/

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ Расписание 8Б</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/schedule.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Админ Расписание 8Б</h1>
+            <div class="date-info">
+                <span id="currentDate"></span>
+            </div>
+            <div class="schedule-legend">
+                <div class="legend-item">
+                    <div class="legend-color test"></div>
+                    <span>Самостоятельная работа</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color exam"></div>
+                    <span>Контрольная работа</span>
+                </div>
+            </div>
+            <div id="adminControls" class="admin-controls" style="display: flex;">
+                <div style="display: flex; align-items: center;">
+                    <button onclick="toggleSaturday()" id="saturdayToggle">Добавить субботу</button>
+                    <select id="saturdaySchedule" class="saturday-select" style="display: none;">
+                        <option value="Понедельник">Понедельник</option>
+                        <option value="Вторник">Вторник</option>
+                        <option value="Среда">Среда</option>
+                        <option value="Четверг">Чет��ерг</option>
+                        <option value="Пятница">Пятница</option>
+                    </select>
+                </div>
+                <button onclick="logout()">Выйти</button>
+            </div>
+        </header>
+
+        <div class="schedule-container">
+            <!-- Расписание будет добавлено через JavaScript -->
+        </div>
+    </div>
+
+    <!-- Модальное окно для редактирования домашнего задания -->
+    <div id="homeworkModal" class="modal">
+        <div class="modal-content">
+            <h2>Домашнее задание</h2>
+            <p id="selectedLesson"></p>
+            <textarea id="homeworkText" placeholder="Введите домашнее задание"></textarea>
+            <div class="lesson-marks">
+                <label>
+                    <input type="checkbox" id="testMark"> Самостоятельная работа
+                </label>
+                <label>
+                    <input type="checkbox" id="examMark"> Контрольная работа
+                </label>
+            </div>
+            <div class="modal-buttons">
+                <button onclick="closeModal()">Отмена</button>
+                <button onclick="saveHomework()" class="primary">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/schedule.js') }}"></script>
+</body>
+</html>

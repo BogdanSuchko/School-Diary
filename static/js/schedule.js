@@ -3,6 +3,7 @@ let currentSchedule = {};
 let saturdayEnabled = false;
 let cachedSchedule = null;
 let cachedHomework = new Map();
+let isAdmin = false;
 
 // Время начала уроков
 const LESSON_TIMES = [
@@ -23,7 +24,7 @@ const DAYS_ORDER = ['Понедельник', 'Вторник', 'Среда', '�
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         const urlParams = new URLSearchParams(window.location.search);
-        const isAdmin = urlParams.get('admin') === 'yes' && getCookie('isAdmin') === 'true';
+        isAdmin = urlParams.get('admin') === 'yes' && getCookie('isAdmin') === 'true';
         
         const adminControls = document.getElementById('adminControls');
         const regularControls = document.getElementById('regularControls');
@@ -81,12 +82,18 @@ async function loadSchedule() {
     scheduleContainer.innerHTML = '';
 
     try {
-        console.log('Загрузка базового расписания...');
+        // Сначала загружаем домашние задания
+        const homeworkSnapshot = await db.collection('homework').get();
+        cachedHomework.clear(); // Очищаем кэш перед загрузкой
+        homeworkSnapshot.forEach(doc => {
+            const data = doc.data();
+            cachedHomework.set(normalizeDocId(data.day, data.lesson), data);
+        });
+
+        // Затем загружаем расписание
         if (!cachedSchedule) {
             const response = await fetch('/api/schedule');
-            if (!response.ok) {
-                throw new Error('Failed to fetch schedule');
-            }
+            if (!response.ok) throw new Error('Failed to fetch schedule');
             cachedSchedule = await response.json();
         }
         currentSchedule = {...cachedSchedule};
@@ -111,15 +118,6 @@ async function loadSchedule() {
                     saturdaySchedule.value = data.scheduleFrom;
                 }
             }
-        }
-
-        // Загружаем домашние задания
-        if (cachedHomework.size === 0) {
-            const homeworkSnapshot = await db.collection('homework').get();
-            homeworkSnapshot.forEach(doc => {
-                const data = doc.data();
-                cachedHomework.set(`${data.day}_${data.lesson}`, data);
-            });
         }
 
         // Отображаем расписание
@@ -166,46 +164,36 @@ function createLessonItem(day, lesson, index, homeworkMap) {
         `;
     } else if (isSplitLesson) {
         homeworkHTML = `
-            <div class="language-homework">
+            <div class="split-homework">
                 <div class="info-homework${homework?.firstGroupTest ? ' test' : ''}${homework?.firstGroupExam ? ' exam' : ''}">
                     <span class="language-label">💻 Информатика</span>
-                    ${homework?.firstGroupText ? `
-                        <p class="homework-text">${homework.firstGroupText}</p>
-                    ` : ''}
+                    ${homework?.firstGroupText ? `<div class="homework-text">${homework.firstGroupText}</div>` : ''}
                 </div>
                 <div class="labor-homework${homework?.secondGroupTest ? ' test' : ''}${homework?.secondGroupExam ? ' exam' : ''}">
                     <span class="language-label">🛠️ Труды</span>
-                    ${homework?.secondGroupText ? `
-                        <p class="homework-text">${homework.secondGroupText}</p>
-                    ` : ''}
+                    ${homework?.secondGroupText ? `<div class="homework-text">${homework.secondGroupText}</div>` : ''}
                 </div>
             </div>
         `;
     } else {
-    if (homework) {
-        if (homework.isTest) lessonItem.classList.add('test');
-        if (homework.isExam) lessonItem.classList.add('exam');
+        if (homework) {
+            if (homework.isTest) lessonItem.classList.add('test');
+            if (homework.isExam) lessonItem.classList.add('exam');
+            homeworkHTML = homework.text ? `<div class="homework-text">${homework.text}</div>` : '';
         }
-        homeworkHTML = `<p class="homework-text">${homework ? homework.text || '' : ''}</p>`;
     }
 
     lessonItem.innerHTML = `
         <div class="lesson-header">
-            <div class="lesson-info">
-                <span class="lesson-number">${index + 1}</span>
-                <span class="lesson-name">${lesson}</span>
-            </div>
+            <span class="lesson-name">${lesson}</span>
             <span class="lesson-time">${LESSON_TIMES[index]}</span>
         </div>
         ${homeworkHTML}
     `;
 
-    const isAdmin = getCookie('isAdmin') === 'true';
     if (isAdmin) {
         lessonItem.style.cursor = 'pointer';
-        lessonItem.addEventListener('click', () => {
-            showHomeworkModal(day, lesson, isLanguageLesson, isSplitLesson);
-        });
+        lessonItem.onclick = () => showHomeworkModal(day, lesson, isLanguageLesson, isSplitLesson);
     }
 
     return lessonItem;
@@ -280,6 +268,7 @@ function setupCheckboxHandlers() {
 // Показ модального окна для домашнего задания
 function showHomeworkModal(day, lesson, isLanguageLesson, isSplitLesson) {
     const modal = document.getElementById('homeworkModal');
+    document.body.classList.add('modal-open');
     const selectedLesson = document.getElementById('selectedLesson');
     const homeworkText = document.getElementById('homeworkText');
     const languageSection = document.getElementById('languageSection');
@@ -326,6 +315,7 @@ function showHomeworkModal(day, lesson, isLanguageLesson, isSplitLesson) {
 // Закрытие модального окна
 function closeModal() {
     document.getElementById('homeworkModal').style.display = 'none';
+    document.body.classList.remove('modal-open');
 }
 
 // Обновляем функцию загрузки существующего домашнего задания
@@ -366,21 +356,19 @@ async function loadExistingHomework(day, lesson, isLanguageLesson, isSplitLesson
 // Обновляем функцию сохранения домашнего задания
 async function saveHomework() {
     try {
-    const modal = document.getElementById('homeworkModal');
-    const day = modal.dataset.day;
-    const lesson = modal.dataset.lesson;
-        
-        // Нормализуем ID документа
+        const modal = document.getElementById('homeworkModal');
+        const day = modal.dataset.day;
+        const lesson = modal.dataset.lesson;
         const docId = normalizeDocId(day, lesson);
         
         const isLanguageLesson = lesson.includes('Иностранный');
         const isSplitLesson = lesson.includes('(м.)') || lesson.includes('(д.)');
 
         let homeworkData = {
-        day,
-        lesson,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
+            day,
+            lesson,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
 
         if (isLanguageLesson) {
             Object.assign(homeworkData, {
@@ -408,13 +396,13 @@ async function saveHomework() {
             });
         }
 
-        // Сохраняем в Firebase используя нормализованный ID
+        // Сохраняем в Firebase
         await db.collection('homework').doc(docId).set(homeworkData);
         
-        // Обновляем кэш используя нормализованный ID
+        // Обновляем кэш
         cachedHomework.set(docId, homeworkData);
         
-        // Перезагружаем расписание и закрываем модальное окно
+        // Обновляем отображение
         await loadSchedule();
         closeModal();
     } catch (error) {

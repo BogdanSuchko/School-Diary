@@ -9,7 +9,6 @@
     --warning-color: #ff9500;
     --success-color: #34c759;
     
-    /* Добавляем переменные для шрифтов */
     --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-size-xl: 24px;
     --font-size-lg: 18px;
@@ -64,6 +63,8 @@ h1 {
 .admin-controls {
     display: flex;
     gap: 12px;
+    justify-content: center;
+    margin-top: 16px;
 }
 
 .admin-controls > div {
@@ -74,7 +75,7 @@ h1 {
 
 #saturdayToggle,
 .saturday-select {
-    height: 36px; /* Фиксированная высота для обоих элементов */
+    height: 36px;
     font-size: var(--font-size-sm);
 }
 
@@ -166,25 +167,9 @@ button[onclick="logout"] {
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-regular);
     color: var(--text-secondary);
-    margin: 4px 0 0 0;
+    margin: 4px 0 0 12px;
     padding: 0;
     width: 100%;
-    margin-left: 12px;
-}
-
-/* Стили для пометок уроков */
-.lesson-item.test,
-.english-homework.test,
-.german-homework.test {
-    background: #fff9e6;
-    border-left: 4px solid var(--warning-color);
-}
-
-.lesson-item.exam,
-.english-homework.exam,
-.german-homework.exam {
-    background: #ffe6e6;
-    border-left: 4px solid var(--error-color);
 }
 
 /* Общие стили для всех типов разделенных уроков */
@@ -193,16 +178,18 @@ button[onclick="logout"] {
 .info-homework,
 .labor-homework {
     margin-top: 4px;
-    padding: 4px 0;
+    padding: 8px;
     background: white;
     border-radius: 4px;
+    margin-bottom: 8px;
 }
 
 /* Стили для контейнера с домашними заданиями */
-.language-homework {
-    margin: 4px 0 0 0;
+.language-homework,
+.split-homework {
+    margin-top: 8px;
     width: 100%;
-    padding: 0;
+    padding-left: 8px;
 }
 
 /* Стили для меток предметов */
@@ -210,35 +197,53 @@ button[onclick="logout"] {
     font-weight: 500;
     color: var(--text-secondary);
     margin-right: 8px;
-}
-
-/* Стили для текста домашнего задания */
-.homework-text {
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-    margin: 4px 0 0 0;
-    padding: 0;
+    display: inline-block;
+    padding-left: 0;
+    padding-top: initial;
 }
 
 /* Стили для тестов и экзаменов */
+.lesson-item.test,
 .english-homework.test,
 .german-homework.test,
 .info-homework.test,
 .labor-homework.test {
     background: #fff9e6;
     border-left: 4px solid var(--warning-color);
+    padding-left: 16px;
 }
 
+.lesson-item.exam,
 .english-homework.exam,
 .german-homework.exam,
 .info-homework.exam,
 .labor-homework.exam {
     background: #ffe6e6;
     border-left: 4px solid var(--error-color);
+    padding-left: 16px;
 }
 
 /* Стили для темной темы */
 @media (prefers-color-scheme: dark) {
+    :root {
+        --background: #1c1c1e;
+        --text-primary: #ffffff;
+        --text-secondary: #98989f;
+        --border-color: #2c2c2e;
+    }
+    
+    body {
+        background-color: #000000;
+    }
+    
+    .lesson-item {
+        background: #2c2c2e;
+    }
+    
+    .lesson-item:hover {
+        background: #3c3c3e;
+    }
+    
     .english-homework,
     .german-homework,
     .info-homework,
@@ -246,6 +251,7 @@ button[onclick="logout"] {
         background: #2c2c2e;
     }
 
+    .lesson-item.test,
     .english-homework.test,
     .german-homework.test,
     .info-homework.test,
@@ -253,11 +259,21 @@ button[onclick="logout"] {
         background: #332d1a;
     }
     
+    .lesson-item.exam,
     .english-homework.exam,
     .german-homework.exam,
     .info-homework.exam,
     .labor-homework.exam {
         background: #331a1a;
+    }
+
+    .mark-label input[type="checkbox"] {
+        accent-color: var(--primary-color);
+    }
+
+    .lesson-number {
+        background: var(--text-secondary);
+        color: var(--background);
     }
 }
 
@@ -271,6 +287,11 @@ button[onclick="logout"] {
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
     z-index: 1000;
+    overflow: auto;
+}
+
+body.modal-open {
+    overflow: hidden;
 }
 
 .modal-content {
@@ -278,12 +299,13 @@ button[onclick="logout"] {
     border-radius: 12px;
     padding: 24px;
     width: 90%;
-    max-width: 460px;
+    max-width: 500px;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-family: var(--font-primary);
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .modal-content h2 {
@@ -318,11 +340,16 @@ button[onclick="logout"] {
     margin-right: auto;
 }
 
-.language-marks {
+.language-marks,
+.homework-marks {
     display: flex;
     flex-direction: column;
     gap: 8px;
     margin-top: 12px;
+}
+
+.homework-marks {
+    margin-bottom: 16px;
 }
 
 .mark-label {
@@ -382,37 +409,7 @@ button[onclick="logout"] {
     opacity: 0.9;
 }
 
-/* Темная тема */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --background: #1c1c1e;
-        --text-primary: #ffffff;
-        --text-secondary: #98989f;
-        --border-color: #2c2c2e;
-    }
-    
-    body {
-        background-color: #000000;
-    }
-    
-    .lesson-item {
-        background: #2c2c2e;
-    }
-    
-    .lesson-item:hover {
-        background: #3c3c3e;
-    }
-    
-    .lesson-item.test {
-        background: #332d1a;
-    }
-    
-    .lesson-item.exam {
-        background: #331a1a;
-    }
-} 
-
-/* Стили для кнопки возвраща */
+/* Стили для кнопки возврата */
 .back-button {
     position: absolute;
     left: 0;
@@ -439,13 +436,7 @@ button[onclick="logout"] {
     background: var(--background);
     color: var(--text-primary);
     cursor: pointer;
-}
-
-/* Стил для длинных названий предметов */
-.lessons-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    margin-left: 12px;
 }
 
 /* Стили для легенды */
@@ -484,53 +475,6 @@ button[onclick="logout"] {
     color: var(--text-secondary);
 }
 
-/* Темная тема */
-@media (prefers-color-scheme: dark) {
-    .legend-color.test {
-        background: #332d1a;
-    }
-    
-    .legend-color.exam {
-        background: #331a1a;
-    }
-}
-
-/* Медиа-запрос для мобильных устройств */
-@media (max-width: 768px) {
-    header {
-        padding-top: 40px;
-    }
-
-    .admin-controls {
-        flex-direction: column;
-        width: 100%;
-        gap: 8px;
-    }
-
-    .admin-controls > div {
-        width: 100%;
-    }
-
-    .admin-controls button,
-    .saturday-select {
-        width: 100%;
-    }
-
-    .schedule-legend {
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .container {
-        padding: 10px;
-    }
-
-    .day-card {
-        margin-bottom: 16px;
-    }
-}
-
 .lesson-info {
     display: flex;
     align-items: center;
@@ -552,15 +496,7 @@ button[onclick="logout"] {
     flex-shrink: 0;
 }
 
-/* Обновляем стили для темной темы */
-@media (prefers-color-scheme: dark) {
-    .lesson-number {
-        background: var(--text-secondary);
-        color: var(--background);
-    }
-}
-
-/* Возращаем старые стили для кнопок админа */
+/* Стили для админских кнопок */
 .admin-controls button {
     padding: 8px 16px;
     border-radius: 6px;
@@ -568,128 +504,6 @@ button[onclick="logout"] {
     font-size: 14px;
     cursor: pointer;
     transition: all 0.2s ease;
-}
-
-/* Стили для выбора расписания субботы */
-.saturday-select {
-    margin-left: 12px;
-    padding: 6px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    background: var(--background);
-    color: var(--text-primary);
-}
-
-/* Оставляем только нужные новые стили для мобильных устройств */
-@media (max-width: 768px) {
-    .admin-controls {
-        flex-direction: column;
-        width: 100%;
-        gap: 8px;
-    }
-
-    .admin-controls > div {
-        width: 100%;
-    }
-
-    .admin-controls button,
-    .saturday-select {
-        width: 100%;
-        margin-left: 0; /* Убираем отступ у селектора на мобильных */
-    }
-}
-
-.language-homework {
-    margin-top: 8px;
-    padding-left: 8px;
-}
-
-.language-label {
-    font-weight: 500;
-    color: var(--text-secondary);
-    margin-right: 8px;
-}
-
-.english-homework,
-.german-homework {
-    margin-top: 4px;
-    padding: 4px 0;
-}
-
-#languageSection .language-input {
-    margin-bottom: 16px;
-}
-
-#languageSection textarea {
-    width: 100%;
-    min-height: 80px;
-    margin-top: 8px;
-    padding: 8px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    resize: vertical;
-}
-
-#languageSection label span {
-    font-weight: 500;
-}
-
-.modal-content h2,
-.modal-content p,
-.modal-content label {
-    font-family: var(--font-primary);
-}
-
-/* Обновляем стили для модального окна */
-.modal-content {
-    max-width: 500px; /* Увеличиваем ширину модального окна */
-}
-
-/* Стили для отметок домашнего задания */
-.homework-marks {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 12px;
-    margin-bottom: 16px;
-}
-
-.homework-marks .mark-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: var(--font-size-md);
-    color: var(--text-primary);
-    cursor: pointer;
-}
-
-.homework-marks input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    margin: 0;
-}
-
-/* Обновляем стили для чекбоксов в темной теме */
-@media (prefers-color-scheme: dark) {
-    .mark-label input[type="checkbox"] {
-        accent-color: var(--primary-color);
-    }
-}
-
-/* Обновляем стили для админских контролов */
-.admin-controls {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    margin-top: 16px;
-}
-
-/* Медиа-запрос для мобильных устройств */
-@media (max-width: 768px) {
-    .admin-controls button {
-        width: 100%;
-        max-width: 300px;
-    }
 }
 
 /* Стили для обычной кнопки выхода */
@@ -717,6 +531,41 @@ button[onclick="logout"] {
 
 /* Медиа-запрос для мобильных устройств */
 @media (max-width: 768px) {
+    header {
+        padding-top: 40px;
+    }
+
+    .admin-controls {
+        flex-direction: column;
+        width: 100%;
+        gap: 8px;
+    }
+
+    .admin-controls > div {
+        width: 100%;
+    }
+
+    .admin-controls button,
+    .saturday-select {
+        width: 100%;
+        margin-left: 0;
+        max-width: 300px;
+    }
+
+    .schedule-legend {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .container {
+        padding: 10px;
+    }
+
+    .day-card {
+        margin-bottom: 16px;
+    }
+
     .regular-controls {
         width: 100%;
     }
@@ -725,80 +574,5 @@ button[onclick="logout"] {
         width: 100%;
         max-width: 300px;
         text-align: center;
-    }
-}
-
-/* Добавляем стили для Информатики и Трудов */
-.info-homework,
-.labor-homework {
-    margin-top: 4px;
-    padding: 4px 8px;
-    background: white;
-    border-radius: 4px;
-    margin-bottom: 4px;
-}
-
-.info-homework.test,
-.labor-homework.test {
-    background: #fff9e6;
-    border-left: 4px solid var(--warning-color);
-}
-
-.info-homework.exam,
-.labor-homework.exam {
-    background: #ffe6e6;
-    border-left: 4px solid var(--error-color);
-}
-
-@media (prefers-color-scheme: dark) {
-    .info-homework.test,
-    .labor-homework.test {
-        background: #332d1a;
-        border-left: 4px solid var(--warning-color);
-    }
-    
-    .info-homework.exam,
-    .labor-homework.exam {
-        background: #331a1a;
-        border-left: 4px solid var(--error-color);
-    }
-}
-
-/* Добавляем стили для разделенных уроков */
-.info-homework,
-.labor-homework {
-    background: white;
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 8px;
-}
-
-.info-homework.test,
-.labor-homework.test {
-    background: #fff9e6;
-    border-left: 4px solid var(--warning-color);
-}
-
-.info-homework.exam,
-.labor-homework.exam {
-    background: #ffe6e6;
-    border-left: 4px solid var(--error-color);
-}
-
-/* Обновляем стили для темной темы */
-@media (prefers-color-scheme: dark) {
-    .info-homework,
-    .labor-homework {
-        background: #2c2c2e;
-    }
-
-    .info-homework.test,
-    .labor-homework.test {
-        background: #332d1a;
-    }
-    
-    .info-homework.exam,
-    .labor-homework.exam {
-        background: #331a1a;
     }
 }

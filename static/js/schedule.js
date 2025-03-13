@@ -479,20 +479,18 @@ document.getElementById('saturdaySchedule')?.addEventListener('change', async (e
 // После инициализации Firebase добавьте:
 const homeworkRef = db.collection('homework');
 
-// Подписываемся на изменения в коллекции homework
-homeworkRef.onSnapshot((snapshot) => {
-    snapshot.docChanges().forEach((change) => {
-        const data = change.doc.data();
-        
-        if (change.type === "added" || change.type === "modified") {
-            // Обновляем UI для добавленного/измененного ДЗ
-            updateHomeworkUI(data);
-        } else if (change.type === "removed") {
-            // Удаляем ДЗ из UI
-            removeHomeworkFromUI(data);
+// Подписываемся на изменения только для просматривающих (не админов)
+if (!isAdmin) {
+    homeworkRef.onSnapshot((snapshot) => {
+        // Если есть какие-либо изменения, перезагружаем страницу
+        if (snapshot.docChanges().length > 0) {
+            // Добавим небольшую задержку перед перезагрузкой
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000); // 1 секунда задержки
         }
     });
-});
+}
 
 // Функция обновления UI
 function updateHomeworkUI(homework) {

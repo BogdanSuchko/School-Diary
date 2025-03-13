@@ -5,6 +5,9 @@ let cachedSchedule = null;
 let cachedHomework = new Map();
 let isAdmin = false;
 
+// Глобальная переменная для хранения отписки от слушателя
+let unsubscribeListener = null;
+
 // Время начала уроков
 const LESSON_TIMES = [
     '8:30 - 9:15',    // 1 урок
@@ -35,6 +38,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             adminControls.style.display = 'none';
             regularControls.style.display = 'flex';
+            // Подписываемся на изменения только если не админ
+            subscribeToChanges();
         }
 
         updateCurrentDate();
@@ -448,8 +453,28 @@ async function toggleSaturday() {
     }
 }
 
-// Выход из админки
+// Функция для подписки на изменения
+function subscribeToChanges() {
+    if (!isAdmin) {
+        // Сохраняем функцию отписки
+        unsubscribeListener = homeworkRef.onSnapshot((snapshot) => {
+            if (snapshot.docChanges().length > 0) {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+        });
+    }
+}
+
+// Обновляем функцию logout
 function logout() {
+    // Отписываемся от слушателя перед выходом
+    if (unsubscribeListener) {
+        unsubscribeListener();
+        unsubscribeListener = null;
+    }
+    
     deleteCookie('isAdmin');
     cachedSchedule = null;
     cachedHomework.clear();
@@ -478,19 +503,6 @@ document.getElementById('saturdaySchedule')?.addEventListener('change', async (e
 
 // После инициализации Firebase добавьте:
 const homeworkRef = db.collection('homework');
-
-// Подписываемся на изменения только для просматривающих (не админов)
-if (!isAdmin) {
-    homeworkRef.onSnapshot((snapshot) => {
-        // Если есть какие-либо изменения, перезагружаем страницу
-        if (snapshot.docChanges().length > 0) {
-            // Добавим небольшую задержку перед перезагрузкой
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000); // 1 секунда задержки
-        }
-    });
-}
 
 // Функция обновления UI
 function updateHomeworkUI(homework) {

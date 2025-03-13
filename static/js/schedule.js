@@ -8,6 +8,9 @@ let isAdmin = false;
 // Глобальная переменная для хранения отписки от слушателя
 let unsubscribeListener = null;
 
+// Добавим переменную для хранения последнего времени обновления
+let lastUpdateTime = 0;
+
 // Время начала уроков
 const LESSON_TIMES = [
     '8:30 - 9:15',    // 1 урок
@@ -453,15 +456,24 @@ async function toggleSaturday() {
     }
 }
 
-// Функция для подписки на изменения
+// Обновляем функцию подписки
 function subscribeToChanges() {
     if (!isAdmin) {
-        // Сохраняем функцию отписки
         unsubscribeListener = homeworkRef.onSnapshot((snapshot) => {
-            if (snapshot.docChanges().length > 0) {
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
+            // Проверяем, есть ли реальные изменения
+            const changes = snapshot.docChanges();
+            if (changes.length > 0) {
+                // Получаем время последнего изменения
+                const latestChange = changes[changes.length - 1];
+                const updateTime = latestChange.doc.data().updatedAt?.seconds || 0;
+                
+                // Перезагружаем только если это новое изменение
+                if (updateTime > lastUpdateTime) {
+                    lastUpdateTime = updateTime;
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                }
             }
         });
     }

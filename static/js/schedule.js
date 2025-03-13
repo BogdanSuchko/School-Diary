@@ -38,9 +38,12 @@ async function checkForUpdates() {
             .get();
 
         if (!snapshot.empty) {
-            const latestUpdate = snapshot.docs[0].data().updatedAt?.toMillis();
+            const latestDoc = snapshot.docs[0].data();
+            // Проверяем timestamp из Firestore
+            const latestUpdate = latestDoc.updatedAt?.seconds * 1000 || 0; // конвертируем в миллисекунды
             
-            if (latestUpdate && latestUpdate > lastCheckTimestamp) {
+            if (latestUpdate > lastCheckTimestamp) {
+                lastCheckTimestamp = Date.now();
                 window.location.reload();
             }
         }
@@ -50,7 +53,7 @@ async function checkForUpdates() {
 }
 
 // Запускаем проверку каждые 30 секунд
-setInterval(checkForUpdates, 30000);
+const updateInterval = setInterval(checkForUpdates, 30000);
 
 // Также проверяем при возвращении на вкладку
 document.addEventListener('visibilitychange', () => {
@@ -490,11 +493,7 @@ async function toggleSaturday() {
 
 // Обновляем функцию logout
 function logout() {
-    if (checkInterval) {
-        clearInterval(checkInterval);
-        checkInterval = null;
-    }
-    
+    clearInterval(updateInterval);
     deleteCookie('isAdmin');
     cachedSchedule = null;
     cachedHomework.clear();

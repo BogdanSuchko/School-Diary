@@ -367,6 +367,8 @@ async function saveHomework() {
         let homeworkData = {
             day,
             lesson,
+            isLanguageLesson,
+            isSplitLesson,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
@@ -407,7 +409,7 @@ async function saveHomework() {
         closeModal();
     } catch (error) {
         console.error('Ошибка при сохранении:', error);
-        alert('Произошла ошибка при сохранении. Пожалуйста, попробуйте еще раз.');
+        showNotification('Ошибка', 'Не удалось сохранить домашнее задание', 'error');
     }
 }
 
@@ -494,29 +496,94 @@ homeworkRef.onSnapshot((snapshot) => {
 
 // Функция обновления UI
 function updateHomeworkUI(homework) {
-    const dayElement = document.querySelector(`[data-day="${homework.day}"]`);
-    if (!dayElement) return;
+    const dayCard = document.querySelector(`[data-day="${homework.day}"]`);
+    if (!dayCard) return;
 
-    const lessonElement = dayElement.querySelector(`[data-lesson="${homework.lesson}"]`);
-    if (!lessonElement) return;
+    const lessonItem = dayCard.querySelector(`[data-lesson="${homework.lesson}"]`);
+    if (!lessonItem) return;
 
-    // Обновляем или создаем элемент с ДЗ
-    let homeworkElement = lessonElement.querySelector('.homework-text');
-    if (!homeworkElement) {
-        homeworkElement = document.createElement('div');
-        homeworkElement.className = 'homework-text';
-        lessonElement.appendChild(homeworkElement);
+    const homeworkContainer = lessonItem.querySelector('.homework-container');
+    if (!homeworkContainer) return;
+
+    // Очищаем контейнер
+    homeworkContainer.innerHTML = '';
+
+    if (homework.isLanguageLesson) {
+        // Для иностранных языков
+        if (homework.englishText) {
+            const englishDiv = createHomeworkElement(
+                '🇬🇧 Английский', 
+                homework.englishText, 
+                homework.englishTest, 
+                homework.englishExam
+            );
+            homeworkContainer.appendChild(englishDiv);
+        }
+        if (homework.germanText) {
+            const germanDiv = createHomeworkElement(
+                '🇩🇪 Немецкий', 
+                homework.germanText, 
+                homework.germanTest, 
+                homework.germanExam
+            );
+            homeworkContainer.appendChild(germanDiv);
+        }
+    } else if (homework.isSplitLesson) {
+        // Для информатики/трудов
+        if (homework.firstGroupText) {
+            const infoDiv = createHomeworkElement(
+                '💻 Информатика', 
+                homework.firstGroupText, 
+                homework.firstGroupTest, 
+                homework.firstGroupExam
+            );
+            homeworkContainer.appendChild(infoDiv);
+        }
+        if (homework.secondGroupText) {
+            const laborDiv = createHomeworkElement(
+                '🛠️ Труды', 
+                homework.secondGroupText, 
+                homework.secondGroupTest, 
+                homework.secondGroupExam
+            );
+            homeworkContainer.appendChild(laborDiv);
+        }
+    } else {
+        // Для обычных предметов
+        if (homework.text) {
+            const homeworkDiv = createHomeworkElement(
+                '', 
+                homework.text, 
+                homework.isTest, 
+                homework.isExam
+            );
+            homeworkContainer.appendChild(homeworkDiv);
+        }
     }
 
-    homeworkElement.textContent = homework.text;
-    
-    // Добавляем иконки если есть тест или контрольная
-    if (homework.test) {
-        homeworkElement.classList.add('has-test');
+    // Обновляем классы для стилей
+    lessonItem.classList.toggle('test', homework.isTest);
+    lessonItem.classList.toggle('exam', homework.isExam);
+}
+
+function createHomeworkElement(label, text, isTest, isExam) {
+    const div = document.createElement('div');
+    div.className = 'homework-text';
+    if (isTest) div.classList.add('has-test');
+    if (isExam) div.classList.add('has-exam');
+
+    if (label) {
+        const labelSpan = document.createElement('span');
+        labelSpan.className = 'language-label';
+        labelSpan.textContent = label;
+        div.appendChild(labelSpan);
     }
-    if (homework.exam) {
-        homeworkElement.classList.add('has-exam');
-    }
+
+    const textSpan = document.createElement('span');
+    textSpan.textContent = text;
+    div.appendChild(textSpan);
+
+    return div;
 }
 
 // Функция удаления ДЗ из UI

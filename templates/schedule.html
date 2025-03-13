@@ -54,15 +54,27 @@
         </header>
 
         <div class="schedule-container">
-            <!-- В цикле расписания -->
-            <div class="day-column" data-day="{{ day }}">
-                {% for lesson in lessons %}
-                <div class="lesson-card" data-lesson="{{ lesson }}">
-                    <h3>{{ lesson }}</h3>
-                    <!-- homework-text будет добавляться динамически -->
+            {% for day in ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'] %}
+                {% if day in schedule %}
+                <div class="day-card" data-day="{{ day }}">
+                    <div class="day-header">
+                        <h2 class="day-name">{{ day }}</h2>
+                    </div>
+                    <div class="lessons-list">
+                        {% for lesson in schedule[day] %}
+                        <div class="lesson-item" data-lesson="{{ lesson }}">
+                            <div class="lesson-header">
+                                <span class="lesson-name">{{ lesson }}</span>
+                                <span class="lesson-time">{{ lesson_times[loop.index0] }}</span>
+                            </div>
+                            <!-- Здесь будет отображаться ДЗ -->
+                            <div class="homework-container"></div>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
-                {% endfor %}
-            </div>
+                {% endif %}
+            {% endfor %}
         </div>
     </div>
 

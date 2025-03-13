@@ -5,11 +5,8 @@ let cachedSchedule = null;
 let cachedHomework = new Map();
 let isAdmin = false;
 
-// Добавляем новую переменную для последней проверки
-let lastCheckTimestamp = Date.now();
-
-// В начале файла добавим:
-let currentVersion = 0;
+// Добавим новую переменную для последней версии
+let lastVersion = 0;
 
 // Время начала уроков
 const LESSON_TIMES = [
@@ -39,8 +36,9 @@ async function checkForUpdates() {
         if (versionDoc.exists) {
             const serverVersion = versionDoc.data().number || 0;
             
-            if (serverVersion > currentVersion) {
-                currentVersion = serverVersion;
+            // Если версия на сервере больше нашей - перезагружаем
+            if (serverVersion > lastVersion) {
+                lastVersion = serverVersion;
                 window.location.reload();
             }
         }
@@ -49,8 +47,8 @@ async function checkForUpdates() {
     }
 }
 
-// Запускаем проверку каждые 30 секунд
-const updateInterval = setInterval(checkForUpdates, 30000);
+// Запускаем проверку каждые 5 секунд
+const updateInterval = setInterval(checkForUpdates, 5000);
 
 // Также проверяем при возвращении на вкладку
 document.addEventListener('visibilitychange', () => {
@@ -74,7 +72,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             adminControls.style.display = 'none';
             regularControls.style.display = 'flex';
-            checkForUpdates(); // Запускаем проверку обновлений
+            
+            // Получаем начальную версию
+            const versionDoc = await db.collection('system').doc('version').get();
+            if (versionDoc.exists) {
+                lastVersion = versionDoc.data().number || 0;
+            }
         }
 
         updateCurrentDate();

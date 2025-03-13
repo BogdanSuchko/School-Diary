@@ -275,6 +275,48 @@ button[onclick="logout"] {
         background: var(--text-secondary);
         color: var(--background);
     }
+
+    /* Стили для модального окна в тёмной теме */
+    .modal-content {
+        background: var(--background);
+        color: var(--text-primary);
+    }
+
+    /* Стили для всех текстовых полей */
+    .modal-content textarea,
+    #homeworkText,
+    #englishText,
+    #germanText,
+    #firstGroupText,
+    #secondGroupText {
+        background: #2c2c2e;
+        color: var(--text-primary);
+        border-color: var(--border-color);
+    }
+
+    /* Стили для контейнеров языков/групп */
+    .language-input,
+    .split-homework {
+        background: #2c2c2e;
+        border-color: var(--border-color);
+    }
+
+    /* Стили для меток */
+    .mark-label,
+    .language-label {
+        color: var(--text-primary);
+    }
+
+    /* Стили для кнопок */
+    .modal-buttons button:not(.primary) {
+        background: #3c3c3e;
+        color: var(--text-primary);
+    }
+
+    /* Стили для чекбоксов */
+    input[type="checkbox"] {
+        accent-color: var(--primary-color);
+    }
 }
 
 /* Модальное окно */

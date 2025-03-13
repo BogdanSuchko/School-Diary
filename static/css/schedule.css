@@ -576,3 +576,13 @@ body.modal-open {
         text-align: center;
     }
 }
+
+.homework-text.has-test::before {
+    content: "📝";
+    margin-right: 5px;
+}
+
+.homework-text.has-exam::before {
+    content: "📚";
+    margin-right: 5px;
+}

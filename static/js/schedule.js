@@ -473,4 +473,73 @@ document.getElementById('saturdaySchedule')?.addEventListener('change', async (e
         loadSchedule();
     }
 });
+
+// После инициализации Firebase добавьте:
+const homeworkRef = db.collection('homework');
+
+// Подписываемся на изменения в коллекции homework
+homeworkRef.onSnapshot((snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+        const data = change.doc.data();
+        
+        if (change.type === "added" || change.type === "modified") {
+            // Обновляем UI для добавленного/измененного ДЗ
+            updateHomeworkUI(data);
+        } else if (change.type === "removed") {
+            // Удаляем ДЗ из UI
+            removeHomeworkFromUI(data);
+        }
+    });
+});
+
+// Функция обновления UI
+function updateHomeworkUI(homework) {
+    const dayElement = document.querySelector(`[data-day="${homework.day}"]`);
+    if (!dayElement) return;
+
+    const lessonElement = dayElement.querySelector(`[data-lesson="${homework.lesson}"]`);
+    if (!lessonElement) return;
+
+    // Обновляем или создаем элемент с ДЗ
+    let homeworkElement = lessonElement.querySelector('.homework-text');
+    if (!homeworkElement) {
+        homeworkElement = document.createElement('div');
+        homeworkElement.className = 'homework-text';
+        lessonElement.appendChild(homeworkElement);
+    }
+
+    homeworkElement.textContent = homework.text;
+    
+    // Добавляем иконки если есть тест или контрольная
+    if (homework.test) {
+        homeworkElement.classList.add('has-test');
+    }
+    if (homework.exam) {
+        homeworkElement.classList.add('has-exam');
+    }
+}
+
+// Функция удаления ДЗ из UI
+function removeHomeworkFromUI(homework) {
+    const dayElement = document.querySelector(`[data-day="${homework.day}"]`);
+    if (!dayElement) return;
+
+    const lessonElement = dayElement.querySelector(`[data-lesson="${homework.lesson}"]`);
+    if (!lessonElement) return;
+
+    const homeworkElement = lessonElement.querySelector('.homework-text');
+    if (homeworkElement) {
+        homeworkElement.remove();
+    }
+}
+
+// Обновляем функцию deleteHomework
+async function deleteHomework(day, lesson) {
+    try {
+        await homeworkRef.doc(`${day}_${lesson}`).delete();
+        // Не нужно обновлять UI здесь - это сделает onSnapshot
+    } catch (error) {
+        showNotification('Ошибка', 'Не удалось удалить домашнее задание', 'error');
+    }
+}
  

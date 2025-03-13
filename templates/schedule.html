@@ -13,6 +13,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <!-- Firebase Firestore -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <!-- Firebase Realtime Database -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
 <body>
     <div class="container">
@@ -52,7 +54,15 @@
         </header>
 
         <div class="schedule-container">
-            <!-- Расписание будет добавлено через JavaScript -->
+            <!-- В цикле расписания -->
+            <div class="day-column" data-day="{{ day }}">
+                {% for lesson in lessons %}
+                <div class="lesson-card" data-lesson="{{ lesson }}">
+                    <h3>{{ lesson }}</h3>
+                    <!-- homework-text будет добавляться динамически -->
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 

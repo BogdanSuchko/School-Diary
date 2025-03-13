@@ -8,6 +8,9 @@ let isAdmin = false;
 // Добавляем новую переменную для последней проверки
 let lastCheckTimestamp = Date.now();
 
+// В начале файла добавим:
+let currentVersion = 0;
+
 // Время начала уроков
 const LESSON_TIMES = [
     '8:30 - 9:15',    // 1 урок
@@ -28,22 +31,16 @@ let checkInterval = null;
 
 // Функция для проверки обновлений
 async function checkForUpdates() {
-    if (isAdmin) return; // Не проверяем обновления для админов
+    if (isAdmin) return;
 
     try {
-        // Получаем только последнее обновление
-        const snapshot = await homeworkRef
-            .orderBy('updatedAt', 'desc')
-            .limit(1)
-            .get();
-
-        if (!snapshot.empty) {
-            const latestDoc = snapshot.docs[0].data();
-            // Проверяем timestamp из Firestore
-            const latestUpdate = latestDoc.updatedAt?.seconds * 1000 || 0; // конвертируем в миллисекунды
+        // Проверяем версию в отдельной коллекции
+        const versionDoc = await db.collection('system').doc('version').get();
+        if (versionDoc.exists) {
+            const serverVersion = versionDoc.data().number || 0;
             
-            if (latestUpdate > lastCheckTimestamp) {
-                lastCheckTimestamp = Date.now();
+            if (serverVersion > currentVersion) {
+                currentVersion = serverVersion;
                 window.location.reload();
             }
         }
@@ -444,6 +441,11 @@ async function saveHomework() {
         // Сохраняем в Firebase
         await db.collection('homework').doc(docId).set(homeworkData);
         
+        // Увеличиваем версию
+        await db.collection('system').doc('version').set({
+            number: firebase.firestore.FieldValue.increment(1)
+        }, { merge: true });
+
         // Обновляем кэш
         cachedHomework.set(docId, homeworkData);
         
@@ -633,7 +635,11 @@ function removeHomeworkFromUI(homework) {
 async function deleteHomework(day, lesson) {
     try {
         await homeworkRef.doc(`${day}_${lesson}`).delete();
-        // Не нужно обновлять UI здесь - это сделает onSnapshot
+        
+        // Увеличиваем версию при удалении
+        await db.collection('system').doc('version').set({
+            number: firebase.firestore.FieldValue.increment(1)
+        }, { merge: true });
     } catch (error) {
         showNotification('Ошибка', 'Не удалось удалить домашнее задание', 'error');
     }

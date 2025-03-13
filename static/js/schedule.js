@@ -5,11 +5,8 @@ let cachedSchedule = null;
 let cachedHomework = new Map();
 let isAdmin = false;
 
-// Глобальная переменная для хранения отписки от слушателя
-let unsubscribeListener = null;
-
-// Добавим переменную для хранения последнего времени обновления
-let lastUpdateTime = 0;
+// Добавляем новую переменную для последней проверки
+let lastCheckTimestamp = Date.now();
 
 // Время начала уроков
 const LESSON_TIMES = [
@@ -26,6 +23,42 @@ const LESSON_TIMES = [
 // Порядок дней недели
 const DAYS_ORDER = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
 
+// Удалим предыдущий код подписки и добавим:
+let checkInterval = null;
+
+// Функция для проверки обновлений
+async function checkForUpdates() {
+    if (isAdmin) return; // Не проверяем обновления для админов
+
+    try {
+        // Получаем только последнее обновление
+        const snapshot = await homeworkRef
+            .orderBy('updatedAt', 'desc')
+            .limit(1)
+            .get();
+
+        if (!snapshot.empty) {
+            const latestUpdate = snapshot.docs[0].data().updatedAt?.toMillis();
+            
+            if (latestUpdate && latestUpdate > lastCheckTimestamp) {
+                window.location.reload();
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка при проверке обновлений:', error);
+    }
+}
+
+// Запускаем проверку каждые 30 секунд
+setInterval(checkForUpdates, 30000);
+
+// Также проверяем при возвращении на вкладку
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        checkForUpdates();
+    }
+});
+
 // При загрузке страницы
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -41,8 +74,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             adminControls.style.display = 'none';
             regularControls.style.display = 'flex';
-            // Подписываемся на изменения только если не админ
-            subscribeToChanges();
+            checkForUpdates(); // Запускаем проверку обновлений
         }
 
         updateCurrentDate();
@@ -456,35 +488,11 @@ async function toggleSaturday() {
     }
 }
 
-// Обновляем функцию подписки
-function subscribeToChanges() {
-    if (!isAdmin) {
-        unsubscribeListener = homeworkRef.onSnapshot((snapshot) => {
-            // Проверяем, есть ли реальные изменения
-            const changes = snapshot.docChanges();
-            if (changes.length > 0) {
-                // Получаем время последнего изменения
-                const latestChange = changes[changes.length - 1];
-                const updateTime = latestChange.doc.data().updatedAt?.seconds || 0;
-                
-                // Перезагружаем только если это новое изменение
-                if (updateTime > lastUpdateTime) {
-                    lastUpdateTime = updateTime;
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                }
-            }
-        });
-    }
-}
-
 // Обновляем функцию logout
 function logout() {
-    // Отписываемся от слушателя перед выходом
-    if (unsubscribeListener) {
-        unsubscribeListener();
-        unsubscribeListener = null;
+    if (checkInterval) {
+        clearInterval(checkInterval);
+        checkInterval = null;
     }
     
     deleteCookie('isAdmin');

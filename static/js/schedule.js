@@ -461,7 +461,7 @@ async function saveHomework() {
     }
 }
 
-// Переключение субботы
+// Обновляем функцию toggleSaturday
 async function toggleSaturday() {
     const toggleBtn = document.getElementById('saturdayToggle');
     const scheduleSelect = document.getElementById('saturdaySchedule');
@@ -482,10 +482,16 @@ async function toggleSaturday() {
     }
     
     try {
+        // Сохраняем настройки субботы
         await db.collection('settings').doc('saturday').set({
             enabled: saturdayEnabled,
             scheduleFrom: saturdayEnabled ? scheduleSelect.value : null
         });
+
+        // Увеличиваем версию при изменении субботы
+        await db.collection('system').doc('version').set({
+            number: firebase.firestore.FieldValue.increment(1)
+        }, { merge: true });
 
         // Очищаем кэш и перезагружаем расписание
         cachedSchedule = null;
@@ -513,15 +519,27 @@ window.onclick = function(event) {
     }
 }
 
-// Добавляем обработчик изменения выбранного дня для субботы
+// Также обновим обработчик изменения дня для субботы
 document.getElementById('saturdaySchedule')?.addEventListener('change', async (e) => {
     if (saturdayEnabled) {
         currentSchedule['Суббота'] = [...currentSchedule[e.target.value]];
-        await db.collection('settings').doc('saturday').set({
-            enabled: true,
-            scheduleFrom: e.target.value
-        });
-        loadSchedule();
+        
+        try {
+            // Сохраняем новые настройки
+            await db.collection('settings').doc('saturday').set({
+                enabled: true,
+                scheduleFrom: e.target.value
+            });
+
+            // Увеличиваем версию
+            await db.collection('system').doc('version').set({
+                number: firebase.firestore.FieldValue.increment(1)
+            }, { merge: true });
+
+            loadSchedule();
+        } catch (error) {
+            console.error('Ошибка при обновлении дня субботы:', error);
+        }
     }
 });
 

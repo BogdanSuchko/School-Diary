@@ -8,6 +8,8 @@
     --error-color: #ff3b30;
     --warning-color: #ff9500;
     --success-color: #34c759;
+    --lesson-bg: #f8f8f8;
+    --card-bg: #ffffff;
     
     --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-size-xl: 24px;
@@ -17,6 +19,15 @@
     --font-weight-bold: 600;
     --font-weight-medium: 500;
     --font-weight-regular: 400;
+}
+
+:root.dark-theme {
+    --background: #1c1c1e;
+    --card-bg: #2c2c2e;
+    --text-primary: #ffffff;
+    --text-secondary: #98989f;
+    --border-color: #3c3c3e;
+    --lesson-bg: #3c3c3e;
 }
 
 body {
@@ -31,6 +42,14 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+body.dark-theme {
+    background-color: #000000;
+}
+
+body.dark-theme :root {
+    color-scheme: dark;
+}
+
 .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -41,10 +60,12 @@ header {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     margin-bottom: 24px;
     gap: 16px;
     position: relative;
     width: 100%;
+    text-align: center;
 }
 
 h1 {
@@ -52,25 +73,41 @@ h1 {
     font-weight: var(--font-weight-bold);
     color: var(--text-primary);
     margin: 50px 0 0 0;
+    text-align: center;
+    width: 100%;
 }
 
 .date-info {
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-regular);
     color: var(--text-secondary);
+    text-align: center;
+    width: 100%;
 }
 
 .admin-controls {
     display: flex;
-    gap: 12px;
-    justify-content: center;
-    margin-top: 16px;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin: 16px 0;
 }
 
 .admin-controls > div {
     display: flex;
+    flex-direction: row;
     align-items: center;
-    gap: 12px;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.admin-controls button,
+.saturday-select {
+    min-width: 150px;
+    margin: 0;
+    padding: 8px 12px;
+    border-radius: 6px;
 }
 
 #saturdayToggle,
@@ -97,7 +134,7 @@ button[onclick="logout"] {
 }
 
 .day-card {
-    background: var(--background);
+    background: var(--card-bg);
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -121,7 +158,7 @@ button[onclick="logout"] {
     padding: 12px;
     border-radius: 8px;
     margin-bottom: 8px;
-    background: #f8f8f8;
+    background: var(--lesson-bg);
     cursor: pointer;
     transition: all 0.2s ease;
     transform-origin: center;
@@ -172,151 +209,176 @@ button[onclick="logout"] {
     width: 100%;
 }
 
-/* Общие стили для всех типов разделенных уроков */
-.english-homework,
-.german-homework,
-.info-homework,
-.labor-homework {
+/* Создаем базовый класс для всех специальных типов домашних заданий */
+.special-homework {
     margin-top: 4px;
-    padding: 8px;
-    background: white;
-    border-radius: 4px;
+    padding: 12px;
+    background: var(--card-bg);
+    border-radius: 8px;
     margin-bottom: 8px;
+    border-left: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
 }
 
-/* Стили для контейнера с домашними заданиями */
-.language-homework,
-.split-homework {
+/* Стили для контейнера специальных домашних заданий */
+.special-homework-container {
     margin-top: 8px;
     width: 100%;
     padding-left: 8px;
 }
 
-/* Стили для меток предметов */
-.language-label {
-    font-weight: 500;
+/* Метка предмета внутри специального домашнего задания */
+.special-homework .subject-label {
+    font-weight: var(--font-weight-medium);
     color: var(--text-secondary);
     margin-right: 8px;
     display: inline-block;
+    margin-bottom: 4px;
+}
+
+/* Текст домашнего задания внутри специального домашнего задания */
+.special-homework .homework-text {
+    margin-top: 4px;
+    margin-left: 0;
     padding-left: 0;
-    padding-top: initial;
+    color: var(--text-primary);
 }
 
 /* Стили для тестов и экзаменов */
-.lesson-item.test,
-.english-homework.test,
-.german-homework.test,
-.info-homework.test,
-.labor-homework.test {
-    background: #fff9e6;
+.special-homework.test {
+    background: #3a3522;
     border-left: 4px solid var(--warning-color);
     padding-left: 16px;
 }
 
-.lesson-item.exam,
-.english-homework.exam,
-.german-homework.exam,
-.info-homework.exam,
-.labor-homework.exam {
-    background: #ffe6e6;
+.special-homework.exam {
+    background: #3a2222;
     border-left: 4px solid var(--error-color);
     padding-left: 16px;
 }
 
-/* Стили для темной темы */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --background: #1c1c1e;
-        --text-primary: #ffffff;
-        --text-secondary: #98989f;
-        --border-color: #2c2c2e;
-    }
-    
-    body {
-        background-color: #000000;
-    }
-    
-    .lesson-item {
-        background: #2c2c2e;
-    }
-    
-    .lesson-item:hover {
-        background: #3c3c3e;
-    }
-    
-    .english-homework,
-    .german-homework,
-    .info-homework,
-    .labor-homework {
-        background: #2c2c2e;
-    }
+/* Применяем existing-code к общим стилям (удаляем индивидуальные стили) */
+.english-homework,
+.german-homework,
+.info-homework,
+.labor-homework {
+    /* Эти классы теперь должны наследовать свойства от .special-homework */
+}
 
-    .lesson-item.test,
-    .english-homework.test,
-    .german-homework.test,
-    .info-homework.test,
-    .labor-homework.test {
-        background: #332d1a;
-    }
-    
-    .lesson-item.exam,
-    .english-homework.exam,
-    .german-homework.exam,
-    .info-homework.exam,
-    .labor-homework.exam {
-        background: #331a1a;
-    }
+body.dark-theme .special-homework {
+    border-color: var(--border-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
 
-    .mark-label input[type="checkbox"] {
-        accent-color: var(--primary-color);
-    }
+/* Убираем дублирующиеся стили */
+body.dark-theme .english-homework,
+body.dark-theme .german-homework,
+body.dark-theme .info-homework,
+body.dark-theme .labor-homework {
+    /* Эти классы теперь должны наследовать свойства от body.dark-theme .special-homework */
+}
 
-    .lesson-number {
-        background: var(--text-secondary);
-        color: var(--background);
-    }
+/* Уточнение для темной темы */
+body.dark-theme .special-homework.test {
+    background: #3a3522;
+    border-left: 4px solid var(--warning-color);
+}
 
-    /* Стили для модального окна в тёмной теме */
-    .modal-content {
-        background: var(--background);
-        color: var(--text-primary);
-    }
+body.dark-theme .special-homework.exam {
+    background: #3a2222;
+    border-left: 4px solid var(--error-color);
+}
 
-    /* Стили для всех текстовых полей */
-    .modal-content textarea,
-    #homeworkText,
-    #englishText,
-    #germanText,
-    #firstGroupText,
-    #secondGroupText {
-        background: #2c2c2e;
-        color: var(--text-primary);
-        border-color: var(--border-color);
-    }
+body.dark-theme .day-card {
+    background: var(--card-bg);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
 
-    /* Стили для контейнеров языков/групп */
-    .language-input,
-    .split-homework {
-        background: #2c2c2e;
-        border-color: var(--border-color);
-    }
+body.dark-theme .lesson-item {
+    background: var(--lesson-bg);
+}
 
-    /* Стили для меток */
-    .mark-label,
-    .language-label {
-        color: var(--text-primary);
-    }
+body.dark-theme .lesson-item:hover {
+    background: #4c4c4e;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
 
-    /* Стили для кнопок */
-    .modal-buttons button:not(.primary) {
-        background: #3c3c3e;
-        color: var(--text-primary);
-    }
+body.dark-theme .english-homework,
+body.dark-theme .german-homework,
+body.dark-theme .info-homework,
+body.dark-theme .labor-homework {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+}
 
-    /* Стили для чекбоксов */
-    input[type="checkbox"] {
-        accent-color: var(--primary-color);
-    }
+body.dark-theme .lesson-item.test,
+body.dark-theme .english-homework.test,
+body.dark-theme .german-homework.test,
+body.dark-theme .info-homework.test,
+body.dark-theme .labor-homework.test {
+    background: #3a3522;
+    border-left: 4px solid var(--warning-color);
+}
+
+body.dark-theme .lesson-item.exam,
+body.dark-theme .english-homework.exam,
+body.dark-theme .german-homework.exam,
+body.dark-theme .info-homework.exam,
+body.dark-theme .labor-homework.exam {
+    background: #3a2222;
+    border-left: 4px solid var(--error-color);
+}
+
+body.dark-theme .mark-label input[type="checkbox"] {
+    accent-color: var(--primary-color);
+}
+
+body.dark-theme .lesson-number {
+    background: var(--text-secondary);
+    color: var(--background);
+}
+
+/* Стили для модального окна в тёмной теме */
+body.dark-theme .modal-content {
+    background: var(--background);
+    color: var(--text-primary);
+}
+
+/* Стили для всех текстовых полей */
+body.dark-theme .modal-content textarea,
+body.dark-theme #homeworkText,
+body.dark-theme #englishText,
+body.dark-theme #germanText,
+body.dark-theme #firstGroupText,
+body.dark-theme #secondGroupText {
+    background: #2c2c2e;
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+/* Стили для контейнеров языков/групп */
+body.dark-theme .language-input,
+body.dark-theme .split-homework {
+    background: #2c2c2e;
+    border-color: var(--border-color);
+}
+
+/* Стили для меток */
+body.dark-theme .mark-label,
+body.dark-theme .language-label {
+    color: var(--text-primary);
+}
+
+/* Стили для кнопок */
+body.dark-theme .modal-buttons button:not(.primary) {
+    background: #3c3c3e;
+    color: var(--text-primary);
+}
+
+/* Стили для чекбоксов */
+body.dark-theme input[type="checkbox"] {
+    accent-color: var(--primary-color);
 }
 
 /* Модальное окно */
@@ -481,38 +543,37 @@ body.modal-open {
     margin-left: 12px;
 }
 
-/* Стили для легенды */
+/* Новая структура легенды для гарантированного центрирования */
 .schedule-legend {
     display: flex;
-    gap: 16px;
-    margin-bottom: 16px;
-    width: 100%;
+    flex-direction: row;
+    align-items: center;
     justify-content: center;
+    gap: 16px;
+    width: 100%;
+    margin: 16px 0;
+    text-align: center;
+    flex-wrap: wrap;
 }
 
 .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    display: inline-block;
+    margin: 4px 0;
+    text-align: center;
 }
 
 .legend-color {
+    display: inline-block;
     width: 16px;
     height: 16px;
     border-radius: 4px;
-}
-
-.legend-color.test {
-    background: #fff9e6;
-    border-left: 3px solid var(--warning-color);
-}
-
-.legend-color.exam {
-    background: #ffe6e6;
-    border-left: 3px solid var(--error-color);
+    vertical-align: middle;
+    margin-right: 6px;
 }
 
 .legend-item span {
+    display: inline-block;
+    vertical-align: middle;
     font-size: var(--font-size-sm);
     color: var(--text-secondary);
 }
@@ -573,31 +634,43 @@ body.modal-open {
 
 /* Медиа-запрос для мобильных устройств */
 @media (max-width: 768px) {
+    h1 {
+        font-size: calc(var(--font-size-lg) + 2px);
+        padding: 0 10px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .schedule-legend {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .legend-item {
+        width: auto;
+        max-width: 200px;
+    }
+    
+    .date-info {
+        padding: 0 10px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
     header {
         padding-top: 40px;
     }
 
-    .admin-controls {
+    .admin-controls > div {
         flex-direction: column;
         width: 100%;
-        gap: 8px;
-    }
-
-    .admin-controls > div {
-        width: 100%;
+        max-width: 300px;
     }
 
     .admin-controls button,
     .saturday-select {
         width: 100%;
-        margin-left: 0;
-        max-width: 300px;
-    }
-
-    .schedule-legend {
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
+        margin: 4px 0;
     }
 
     .container {
@@ -617,6 +690,30 @@ body.modal-open {
         max-width: 300px;
         text-align: center;
     }
+
+    .theme-toggle {
+        justify-content: center;
+        width: auto;
+        max-width: 170px;
+        margin: 8px auto;
+    }
+    
+    .legend-color {
+        flex-shrink: 0;
+    }
+}
+
+/* Улучшение для среднеразмерных экранов */
+@media (min-width: 769px) {
+    .schedule-legend {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    
+    .legend-item {
+        margin: 0;
+    }
 }
 
 .homework-text.has-test::before {
@@ -627,4 +724,109 @@ body.modal-open {
 .homework-text.has-exam::before {
     content: "📚";
     margin-right: 5px;
+}
+
+/* Стили для переключателя темы */
+.theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 8px auto;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 16px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    width: fit-content;
+}
+
+.theme-toggle .toggle-switch {
+    position: relative;
+    width: 44px;
+    height: 22px;
+    background-color: #ccc;
+    border-radius: 11px;
+    transition: background-color 0.3s;
+}
+
+body.dark-theme .theme-toggle .toggle-switch {
+    background-color: var(--primary-color);
+}
+
+.theme-toggle .toggle-switch::before {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: white;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-theme .theme-toggle .toggle-switch::before {
+    transform: translateX(22px);
+}
+
+.theme-toggle .toggle-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+}
+
+@media (max-width: 768px) {
+    .theme-toggle {
+        justify-content: center;
+        width: auto;
+        max-width: 170px;
+        margin: 8px auto;
+    }
+}
+
+/* Восстанавливаем стили для цветовых индикаторов */
+.legend-color.test {
+    background: #fff9e6;
+    border-left: 3px solid var(--warning-color);
+}
+
+.legend-color.exam {
+    background: #ffe6e6;
+    border-left: 3px solid var(--error-color);
+}
+
+/* Улучшаем стили для lesson-item в светлой теме */
+.lesson-item.test {
+    background: #fff9e6 !important; /* Светло-желтый фон */
+    border-left: 4px solid var(--warning-color) !important;
+    padding-left: 16px;
+}
+
+.lesson-item.exam {
+    background: #ffe6e6 !important; /* Светло-красный фон */
+    border-left: 4px solid var(--error-color) !important;
+    padding-left: 16px;
+}
+
+/* Стили для темной темы (уже существующие, но улучшим их) */
+body.dark-theme .lesson-item.test {
+    background: #3a3522 !important;
+    border-left: 4px solid var(--warning-color) !important;
+}
+
+body.dark-theme .lesson-item.exam {
+    background: #3a2222 !important;
+    border-left: 4px solid var(--error-color) !important;
+}
+
+/* Удаляем пояснительные "значки" перед текстом уроков */
+.lesson-item.test .lesson-name::before {
+    content: none;
+}
+
+.lesson-item.exam .lesson-name::before {
+    content: none;
 }

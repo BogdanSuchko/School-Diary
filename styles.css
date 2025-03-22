@@ -1,0 +1,45 @@
+.header {
+  padding: 15px;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.school-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  line-height: 1.2;
+}
+
+.date {
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: #6c757d;
+}
+
+.indicators {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  padding-left: 20px;
+}
+
+.indicator {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.indicator-icon {
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+}
+
+.exit-button {
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+} 

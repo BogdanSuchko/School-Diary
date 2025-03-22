@@ -190,15 +190,15 @@ function createLessonItem(day, lesson, index, homeworkMap) {
     let homeworkHTML = '';
     if (isLanguageLesson) {
         homeworkHTML = `
-            <div class="language-homework">
-                <div class="english-homework${homework?.englishTest ? ' test' : ''}${homework?.englishExam ? ' exam' : ''}">
-                    <span class="language-label">🇬🇧 Английский</span>
+            <div class="special-homework-container">
+                <div class="special-homework english-homework${homework?.englishTest ? ' test' : ''}${homework?.englishExam ? ' exam' : ''}">
+                    <span class="subject-label">🇬🇧 Английский</span>
                     ${homework?.englishText ? `
                         <p class="homework-text">${homework.englishText}</p>
                     ` : ''}
                 </div>
-                <div class="german-homework${homework?.germanTest ? ' test' : ''}${homework?.germanExam ? ' exam' : ''}">
-                    <span class="language-label">🇩🇪 Немецкий</span>
+                <div class="special-homework german-homework${homework?.germanTest ? ' test' : ''}${homework?.germanExam ? ' exam' : ''}">
+                    <span class="subject-label">🇩🇪 Немецкий</span>
                     ${homework?.germanText ? `
                         <p class="homework-text">${homework.germanText}</p>
                     ` : ''}
@@ -207,13 +207,13 @@ function createLessonItem(day, lesson, index, homeworkMap) {
         `;
     } else if (isSplitLesson) {
         homeworkHTML = `
-            <div class="split-homework">
-                <div class="info-homework${homework?.firstGroupTest ? ' test' : ''}${homework?.firstGroupExam ? ' exam' : ''}">
-                    <span class="language-label">💻 Информатика</span>
+            <div class="special-homework-container">
+                <div class="special-homework info-homework${homework?.firstGroupTest ? ' test' : ''}${homework?.firstGroupExam ? ' exam' : ''}">
+                    <span class="subject-label">💻 Информатика</span>
                     ${homework?.firstGroupText ? `<div class="homework-text">${homework.firstGroupText}</div>` : ''}
                 </div>
-                <div class="labor-homework${homework?.secondGroupTest ? ' test' : ''}${homework?.secondGroupExam ? ' exam' : ''}">
-                    <span class="language-label">🛠️ Труды</span>
+                <div class="special-homework labor-homework${homework?.secondGroupTest ? ' test' : ''}${homework?.secondGroupExam ? ' exam' : ''}">
+                    <span class="subject-label">🛠️ Труды</span>
                     ${homework?.secondGroupText ? `<div class="homework-text">${homework.secondGroupText}</div>` : ''}
                 </div>
             </div>
@@ -665,4 +665,39 @@ async function deleteHomework(day, lesson) {
         showNotification('Ошибка', 'Не удалось удалить домашнее задание', 'error');
     }
 }
+
+// Функция для установки темы
+function setTheme(isDark) {
+    if (isDark) {
+        document.body.classList.add('dark-theme');
+        document.documentElement.classList.add('dark-theme');
+        localStorage.setItem('theme', 'dark');
+    } else {
+        document.body.classList.remove('dark-theme');
+        document.documentElement.classList.remove('dark-theme');
+        localStorage.setItem('theme', 'light');
+    }
+}
+
+// Функция переключения темы
+function toggleTheme() {
+    const isDarkTheme = document.body.classList.contains('dark-theme');
+    setTheme(!isDarkTheme);
+}
+
+// Загружаем тему из localStorage при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    // Используем сохраненную тему, если она есть, иначе используем светлую тему (по умолчанию)
+    if (savedTheme === 'dark') {
+        setTheme(true);
+    } else if (savedTheme === 'light') {
+        setTheme(false);
+    } else {
+        // Если нет сохраненных предпочтений, используем светлую тему
+        setTheme(false);
+    }
+});
  

@@ -15,7 +15,6 @@
             <h1>Электронный дневник 8Б</h1>
             <div class="buttons">
                 <button onclick="viewSchedule()" class="view-btn">Смотреть расписание</button>
-                <button onclick="showAdminLogin()" class="admin-btn">Войти как администратор</button>
             </div>
         </div>
 
@@ -29,6 +28,10 @@
                     <button onclick="loginAsAdmin()" class="primary">Войти</button>
                 </div>
             </div>
+        </div>
+        
+        <div class="footer">
+            <span class="admin-link" onclick="showAdminLogin()">Вы админ?</span>
         </div>
     </div>
     <script src="{{ url_for('static', filename='js/index.js') }}"></script>

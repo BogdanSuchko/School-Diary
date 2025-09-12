@@ -31,7 +31,7 @@ def get_schedule():
     try:
         with open('data.json', 'r', encoding='utf-8') as f:
             data = json.load(f)
-        return jsonify(data['schedule']['8Б'])
+        return jsonify(data['schedule']['9Б'])
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

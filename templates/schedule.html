@@ -1,22 +1,20 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark" class="dark-theme">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
     <title>Расписание 9Б</title>
-    <!-- Добавляем favicon -->
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/schedule.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Firebase App (the core Firebase SDK) -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <!-- Firebase Firestore -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <!-- Firebase Realtime Database -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
-<body>
+<body class="design-new dark-theme">
+
     <div class="container">
         <header>
             <h1>СШ №8 г. Минска. Расписание 9Б</h1>
@@ -33,139 +31,98 @@
                     <span>Контрольная работа</span>
                 </div>
             </div>
-            <!-- Добавляем после элемента schedule-legend -->
-            <div class="theme-toggle" onclick="toggleTheme()">
-                <span class="toggle-label">Тёмная тема</span>
-                <div class="toggle-switch"></div>
-            </div>
+            
             <!-- Кнопка выйти для обычного просмотра -->
             <div id="regularControls" class="regular-controls">
                 <a href="/" class="exit-button">Выйти</a>
             </div>
+            
             <!-- Админские контролы -->
             <div id="adminControls" class="admin-controls" style="display: none;">
-                <div style="display: flex; align-items: center;">
-                    <button onclick="toggleSaturday()" id="saturdayToggle">Добавить субботу</button>
-                    <select id="saturdaySchedule" class="saturday-select" style="display: none;">
-                        <option value="Понедельник">Понедельник</option>
-                        <option value="Вторник">Вторник</option>
-                        <option value="Среда">Среда</option>
-                        <option value="Четверг">Четверг</option>
-                        <option value="Пятница">Пятница</option>
-                    </select>
-                </div>
-                <button onclick="logout()">Выйти</button>
+                <button onclick="toggleSaturday()" id="saturdayToggle" class="admin-btn">Добавить субботу</button>
+                <select id="saturdaySchedule" class="saturday-select admin-btn" style="display: none;">
+                    <option value="Понедельник">Понедельник</option>
+                    <option value="Вторник">Вторник</option>
+                    <option value="Среда">Среда</option>
+                    <option value="Четверг">Четверг</option>
+                    <option value="Пятница">Пятница</option>
+                </select>
+                <button onclick="logout()" class="admin-btn exit-btn">Выйти</button>
             </div>
         </header>
 
-        <div class="schedule-container">
-            {% for day in ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'] %}
-                {% if day in schedule %}
-                <div class="day-card" data-day="{{ day }}">
-                    <div class="day-header">
-                        <h2 class="day-name">{{ day }}</h2>
-                    </div>
-                    <div class="lessons-list">
-                        {% for lesson in schedule[day] %}
-                        <div class="lesson-item" data-lesson="{{ lesson }}">
-                            <div class="lesson-header">
-                                <span class="lesson-name">{{ lesson }}</span>
-                                <span class="lesson-time">{{ lesson_times[loop.index0] }}</span>
-                            </div>
-                            <!-- Здесь будет отображаться ДЗ -->
-                            <div class="homework-container"></div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-            {% endfor %}
+        <div id="mobileProposeHint" class="mobile-hint">
+            💡 Если ты хочешь поделиться тем что тут не записано (или записано неправильно) то просто нажми на урок и напиши правильное дз
         </div>
+
+        <div class="schedule-container"></div>
     </div>
 
-    <!-- Модальное окно для редактирования домашнего задания -->
+    <!-- Модальное окно (Админ: редактирование ДЗ и названия урока) -->
     <div id="homeworkModal" class="modal">
         <div class="modal-content">
-            <h2>Домашнее задание</h2>
-            <p id="selectedLesson"></p>
-            
-            <!-- Обычное поле для домашнего задания -->
-            <textarea id="homeworkText" placeholder="Введите домашнее задание"></textarea>
-            
-            <!-- Добавляем чекбоксы для обычных предметов -->
-            <div class="homework-marks">
-                <label class="mark-label">
-                    <input type="checkbox" name="homeworkTest"> Самостоятельная работа
-                </label>
-                <label class="mark-label">
-                    <input type="checkbox" name="homeworkExam"> Контрольная работа
-                </label>
-            </div>
+            <h2>Настройки урока</h2>
+            <div class="modal-body">
+                <div style="margin-bottom: 24px;">
+                    <label class="mark-label" style="margin-bottom: 8px;">Название предмета:</label>
+                    <input type="text" id="adminLessonName" class="edit-input" placeholder="Название урока">
+                </div>
 
-            <!-- Секция для иностранных языков -->
-            <div id="languageSection" style="display: none;">
-                <div class="language-input">
-                    <label>
-                        <span class="language-label" data-icon="GB">Английский язык:</span>
-                        <textarea id="englishText" placeholder="Домашнее задание по английскому"></textarea>
-                        <div class="language-marks">
-                            <label class="mark-label">
-                                <input type="checkbox" name="englishTest"> Самостоятельная работа
-                            </label>
-                            <label class="mark-label">
-                                <input type="checkbox" name="englishExam"> Контрольная работа
-                            </label>
-                        </div>
-                    </label>
+                <div id="normalSection">
+                    <label class="mark-label" style="margin-bottom: 8px;">Домашнее задание:</label>
+                    <textarea id="homeworkText" placeholder="Введите домашнее задание"></textarea>
+                    <div class="homework-marks">
+                        <label class="mark-label"><input type="checkbox" name="homeworkTest"> Самостоятельная работа</label>
+                        <label class="mark-label"><input type="checkbox" name="homeworkExam"> Контрольная работа</label>
+                    </div>
                 </div>
-                <div class="language-input">
-                    <label>
-                        <span class="language-label" data-icon="DE">Немецкий язык:</span>
-                        <textarea id="germanText" placeholder="Домашнее задание по немецкому"></textarea>
-                        <div class="language-marks">
-                            <label class="mark-label">
-                                <input type="checkbox" name="germanTest"> Самостоятельная работа
-                            </label>
-                            <label class="mark-label">
-                                <input type="checkbox" name="germanExam"> Контрольная работа
-                            </label>
-                        </div>
-                    </label>
-                </div>
-            </div>
 
-            <!-- Обновляем секцию для разделенных уроков -->
-            <div id="splitSection" style="display: none;">
-                <div class="language-input">
-                    <label>
-                        <span class="language-label">💻 Информатика</span>
-                        <textarea id="firstGroupText" placeholder="Домашнее задание по информатике"></textarea>
-                        <div class="language-marks">
-                            <label class="mark-label">
-                                <input type="checkbox" name="firstGroupTest"> Самостоятельная работа
-                            </label>
-                            <label class="mark-label">
-                                <input type="checkbox" name="firstGroupExam"> Контрольная работа
-                            </label>
-                        </div>
-                    </label>
+                <div id="languageSection" style="display: none;">
+                    <div class="language-input">
+                        <label>
+                            <span class="language-label" data-icon="GB">Английский язык:</span>
+                            <textarea id="englishText" placeholder="Домашнее задание по английскому"></textarea>
+                            <div class="language-marks">
+                                <label class="mark-label"><input type="checkbox" name="englishTest"> Самостоятельная работа</label>
+                                <label class="mark-label"><input type="checkbox" name="englishExam"> Контрольная работа</label>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="language-input">
+                        <label>
+                            <span class="language-label" data-icon="DE">Немецкий язык:</span>
+                            <textarea id="germanText" placeholder="Домашнее задание по немецкому"></textarea>
+                            <div class="language-marks">
+                                <label class="mark-label"><input type="checkbox" name="germanTest"> Самостоятельная работа</label>
+                                <label class="mark-label"><input type="checkbox" name="germanExam"> Контрольная работа</label>
+                            </div>
+                        </label>
+                    </div>
                 </div>
-                <div class="language-input">
-                    <label>
-                        <span class="language-label">🛠️ Труды</span>
-                        <textarea id="secondGroupText" placeholder="Домашнее задание по трудам"></textarea>
-                        <div class="language-marks">
-                            <label class="mark-label">
-                                <input type="checkbox" name="secondGroupTest"> Самостоятельная работа
-                            </label>
-                            <label class="mark-label">
-                                <input type="checkbox" name="secondGroupExam"> Контрольная работа
-                            </label>
-                        </div>
-                    </label>
+
+                <div id="splitSection" style="display: none;">
+                    <div class="language-input">
+                        <label>
+                            <span class="language-label">💻 Информатика</span>
+                            <textarea id="firstGroupText" placeholder="Домашнее задание по информатике"></textarea>
+                            <div class="language-marks">
+                                <label class="mark-label"><input type="checkbox" name="firstGroupTest"> Самостоятельная работа</label>
+                                <label class="mark-label"><input type="checkbox" name="firstGroupExam"> Контрольная работа</label>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="language-input">
+                        <label>
+                            <span class="language-label">🛠️ Труды</span>
+                            <textarea id="secondGroupText" placeholder="Домашнее задание по трудам"></textarea>
+                            <div class="language-marks">
+                                <label class="mark-label"><input type="checkbox" name="secondGroupTest"> Самостоятельная работа</label>
+                                <label class="mark-label"><input type="checkbox" name="secondGroupExam"> Контрольная работа</label>
+                            </div>
+                        </label>
+                    </div>
                 </div>
             </div>
-
             <div class="modal-buttons">
                 <button onclick="closeModal()">Отмена</button>
                 <button onclick="saveHomework()" class="primary">Сохранить</button>
@@ -173,9 +130,49 @@
         </div>
     </div>
 
-    <!-- Инициализация Firebase -->
+    <!-- Модальное окно (Пользователь: Предложить ДЗ) -->
+    <div id="proposeModal" class="modal">
+        <div class="modal-content">
+            <h2>Предложить ДЗ</h2>
+            <p id="proposeSelectedLesson" style="color: var(--text-secondary); margin-bottom: 16px; margin-top: -10px;"></p>
+            
+            <div class="modal-body">
+                <div id="proposeNormalSection" style="display: none;">
+                    <label class="mark-label" style="margin-bottom: 8px;">Домашнее задание:</label>
+                    <textarea id="proposeNormText" placeholder="Напишите тут домашнее задание..."></textarea>
+                </div>
+                
+                <div id="proposeLangSection" style="display: none;">
+                    <div class="language-input" style="margin-bottom: 16px;">
+                        <label><span class="language-label" data-icon="GB">Английский:</span>
+                        <textarea id="proposeEngText" placeholder="ДЗ по английскому..."></textarea></label>
+                    </div>
+                    <div class="language-input">
+                        <label><span class="language-label" data-icon="DE">Немецкий:</span>
+                        <textarea id="proposeGerText" placeholder="ДЗ по немецкому..."></textarea></label>
+                    </div>
+                </div>
+
+                <div id="proposeSplitSection" style="display: none;">
+                    <div class="language-input" style="margin-bottom: 16px;">
+                        <label><span class="language-label">💻 Информатика:</span>
+                        <textarea id="proposeFirstText" placeholder="ДЗ по информатике..."></textarea></label>
+                    </div>
+                    <div class="language-input">
+                        <label><span class="language-label">🛠️ Труды:</span>
+                        <textarea id="proposeSecondText" placeholder="ДЗ по трудам..."></textarea></label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-buttons">
+                <button onclick="closeProposeModal()" style="flex: 1;">Отмена</button>
+                <button onclick="submitProposal()" class="primary" style="flex: 1;">Отправить</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Конфигурация Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyARA6IQsVR8vhcWnvCScJaNA--IwsE4LCs",
             authDomain: "school8-schedule.firebaseapp.com",
@@ -185,13 +182,10 @@
             appId: "1:1006955591593:web:33e5baee111e37e526b6b8",
             measurementId: "G-KG4W72JRQK"
         };
-
-        // Инициализация Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
     </script>
-    
-    <!-- Основной скрипт -->
+    <script src="{{ url_for('static', filename='js/design.js') }}"></script>
     <script src="{{ url_for('static', filename='js/schedule.js') }}"></script>
 </body>
-</html> 
+</html>

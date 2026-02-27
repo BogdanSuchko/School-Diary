@@ -1,5 +1,5 @@
 // Константы для паролей админов
-const ADMIN_PASSWORDS = ['СуБоСе', 'БоЛаВа'];
+const ADMIN_PASSWORDS = ['33459'];
 
 // Функция для установки cookie
 function setCookie(name, value, days) {
@@ -22,6 +22,8 @@ function deleteCookie(name) {
 
 // При загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
+    window.setupThemeToggle?.();
+
     const isAdmin = getCookie('isAdmin') === 'true';
     const lastUsedPassword = getCookie('lastUsedPassword');
 
@@ -45,12 +47,20 @@ function showAdminLogin() {
         adminPasswordInput.value = lastUsedPassword;
     }
 
-    document.getElementById('adminModal').style.display = 'block';
+    const modal = document.getElementById('adminModal');
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => {
+        modal.classList.add('is-visible');
+    });
     adminPasswordInput.focus();
 }
 
 function closeAdminModal() {
-    document.getElementById('adminModal').style.display = 'none';
+    const modal = document.getElementById('adminModal');
+    modal.classList.remove('is-visible');
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 150);
 }
 
 function loginAsAdmin() {
@@ -79,4 +89,3 @@ document.getElementById('adminPassword')?.addEventListener('keypress', (e) => {
         loginAsAdmin();
     }
 });
-  

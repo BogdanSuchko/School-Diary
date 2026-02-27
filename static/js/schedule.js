@@ -4,700 +4,681 @@ let saturdayEnabled = false;
 let cachedSchedule = null;
 let cachedHomework = new Map();
 let isAdmin = false;
-
-// Добавим новую переменную для последней версии
 let lastVersion = 0;
+let pendingProposals = [];
 
-// Время начала уроков
+// ИЗМЕНЕНИЯ: Удален 8-й урок, 7-й начинается в 14:25 и заканчивается в 15:10
 const LESSON_TIMES = [
-    '8:30 - 9:15',    // 1 урок
-    '9:30 - 10:15',   // 2 урок
-    '10:30 - 11:15',  // 3 урок
-    '11:30 - 12:15',  // 4 урок
-    '12:30 - 13:15',  // 5 урок
-    '13:30 - 14:15',  // 6 урок
-    '14:30 - 15:15',  // 7 урок
-    '15:30 - 16:15'   // 8 урок
+  "8:30 - 9:15",
+  "9:30 - 10:15",
+  "10:30 - 11:15",
+  "11:30 - 12:15",
+  "12:30 - 13:15",
+  "13:30 - 14:15",
+  "14:25 - 15:10",
 ];
 
-// Порядок дней недели
-const DAYS_ORDER = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+const DAYS_ORDER = [
+  "Понедельник",
+  "Вторник",
+  "Среда",
+  "Четверг",
+  "Пятница",
+  "Суббота",
+];
 
-// Удалим предыдущий код подписки и добавим:
-let checkInterval = null;
-
-// Функция для проверки обновлений
+// Проверка обновлений
 async function checkForUpdates() {
-    if (isAdmin) return;
-
-    try {
-        // Проверяем версию в отдельной коллекции
-        const versionDoc = await db.collection('system').doc('version').get();
-        if (versionDoc.exists) {
-            const serverVersion = versionDoc.data().number || 0;
-            
-            // Если версия на сервере больше нашей - перезагружаем
-            if (serverVersion > lastVersion) {
-                lastVersion = serverVersion;
-                window.location.reload();
-            }
-        }
-    } catch (error) {
-        console.error('Ошибка при проверке обновлений:', error);
+  if (isAdmin) return;
+  try {
+    const versionDoc = await db.collection("system").doc("version").get();
+    if (versionDoc.exists && versionDoc.data().number > lastVersion) {
+      lastVersion = versionDoc.data().number;
+      window.location.reload();
     }
+  } catch (e) {}
 }
 
-// Запускаем проверку каждые 5 секунд
-const updateInterval = setInterval(checkForUpdates, 5000);
+setInterval(checkForUpdates, 5000);
 
-// Также проверяем при возвращении на вкладку
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-        checkForUpdates();
-    }
-});
+document.addEventListener("DOMContentLoaded", async () => {
+  isAdmin =
+    new URLSearchParams(window.location.search).get("admin") === "yes" &&
+    getCookie("isAdmin") === "true";
 
-// При загрузке страницы
-document.addEventListener('DOMContentLoaded', async () => {
+  if (isAdmin) {
+    document.getElementById("adminControls").style.display = "flex";
+    document.getElementById("regularControls").style.display = "none";
+    setupProposalsListener();
+  } else {
+    document
+      .getElementById("mobileProposeHint")
+      .classList.add("show-on-mobile");
     try {
-        const urlParams = new URLSearchParams(window.location.search);
-        isAdmin = urlParams.get('admin') === 'yes' && getCookie('isAdmin') === 'true';
-        
-        const adminControls = document.getElementById('adminControls');
-        const regularControls = document.getElementById('regularControls');
-        
-        if (isAdmin) {
-            adminControls.style.display = 'flex';
-            regularControls.style.display = 'none';
-        } else {
-            adminControls.style.display = 'none';
-            regularControls.style.display = 'flex';
-            
-            // Получаем начальную версию
-            const versionDoc = await db.collection('system').doc('version').get();
-            if (versionDoc.exists) {
-                lastVersion = versionDoc.data().number || 0;
-            }
-        }
+      const v = await db.collection("system").doc("version").get();
+      if (v.exists) lastVersion = v.data().number || 0;
+    } catch (e) {}
+  }
 
-        updateCurrentDate();
-        await loadSchedule();
-    } catch (error) {
-        console.error('Ошибка при инициализации:', error);
-    }
+  updateCurrentDate();
+  await loadSchedule();
 });
 
-// Функция для получения cookie
 function getCookie(name) {
-    return document.cookie.split('; ').reduce((r, v) => {
-        const parts = v.split('=');
-        return parts[0] === name ? decodeURIComponent(parts[1]) : r;
-    }, '');
+  return document.cookie.split("; ").reduce((r, v) => {
+    const parts = v.split("=");
+    return parts[0] === name ? decodeURIComponent(parts[1]) : r;
+  }, "");
 }
 
-// Функция для удаления cookie
-function deleteCookie(name) {
-    document.cookie = name + '=; Max-Age=0; path=/';
-}
+// Глобальные функции для кнопок админки
+window.deleteCookie = function (name) {
+  document.cookie = name + "=; Max-Age=0; path=/";
+};
 
-// Обновление текущей даты
+window.logout = function () {
+  deleteCookie("isAdmin");
+  window.location.href = "/";
+};
+
 function updateCurrentDate() {
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const currentDate = new Date().toLocaleDateString('ru-RU', options);
-    document.getElementById('currentDate').textContent = currentDate;
+  document.getElementById("currentDate").textContent =
+    new Date().toLocaleDateString("ru-RU", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
 }
 
-// Функция для нормализации ID документа
 function normalizeDocId(day, lesson) {
-    // Заменяем все пробелы и слэши на подчеркивания
-    return `${day}_${lesson}`.replace(/[\s\/()\.]/g, '_');
+  return `${day}_${lesson}`.replace(/[\s\/()\.]/g, "_");
 }
 
-// Оптимизированная загрузка расписания
+// Загрузка расписания
 async function loadSchedule() {
-    console.log('Начало загрузки расписания');
-    const scheduleContainer = document.querySelector('.schedule-container');
-    if (!scheduleContainer) {
-        console.error('Container for schedule not found');
-        return;
+  const container = document.querySelector(".schedule-container");
+  container.innerHTML = "";
+
+  try {
+    const hwSnap = await db.collection("homework").get();
+    cachedHomework.clear();
+    hwSnap.forEach((doc) =>
+      cachedHomework.set(
+        normalizeDocId(doc.data().day, doc.data().lesson),
+        doc.data(),
+      ),
+    );
+
+    if (!cachedSchedule) {
+      const res = await fetch("/api/schedule");
+      cachedSchedule = await res.json();
     }
-    
-    scheduleContainer.innerHTML = '';
+    currentSchedule = { ...cachedSchedule };
 
-    try {
-        // Сначала загружаем домашние задания
-        const homeworkSnapshot = await db.collection('homework').get();
-        cachedHomework.clear(); // Очищаем кэш перед загрузкой
-        homeworkSnapshot.forEach(doc => {
-            const data = doc.data();
-            cachedHomework.set(normalizeDocId(data.day, data.lesson), data);
-        });
+    const schedDoc = await db.collection("schedule").doc("main").get();
+    if (schedDoc.exists) Object.assign(currentSchedule, schedDoc.data());
 
-        // Затем загружаем расписание
-        if (!cachedSchedule) {
-            const response = await fetch('/api/schedule');
-            if (!response.ok) throw new Error('Failed to fetch schedule');
-            cachedSchedule = await response.json();
-        }
-        currentSchedule = {...cachedSchedule};
-
-        // Проверяем статус субботы
-        const saturdayDoc = await db.collection('settings').doc('saturday').get();
-        if (saturdayDoc.exists) {
-            const data = saturdayDoc.data();
-            saturdayEnabled = data.enabled;
-            
-            if (saturdayEnabled && data.scheduleFrom) {
-                currentSchedule['Суббота'] = [...currentSchedule[data.scheduleFrom]];
-                
-                const saturdayToggle = document.getElementById('saturdayToggle');
-                const saturdaySchedule = document.getElementById('saturdaySchedule');
-                
-                if (saturdayToggle) {
-                    saturdayToggle.textContent = 'Убрать субботу';
-                }
-                if (saturdaySchedule) {
-                    saturdaySchedule.style.display = 'block';
-                    saturdaySchedule.value = data.scheduleFrom;
-                }
-            }
-        }
-
-        // Отображаем расписание
-        DAYS_ORDER.forEach(day => {
-            if (currentSchedule[day] && (day !== 'Суббота' || saturdayEnabled)) {
-                const dayCard = createDayCard(day, currentSchedule[day], cachedHomework);
-                scheduleContainer.appendChild(dayCard);
-            }
-        });
-
-    } catch (error) {
-        console.error('Ошибка загрузки расписания:', error);
-        scheduleContainer.innerHTML = `<div class="error-message">Ошибка загрузки расписания: ${error.message}</div>`;
-    }
-}
-
-// Обновляем функцию создания карточки урока
-function createLessonItem(day, lesson, index, homeworkMap) {
-    const lessonItem = document.createElement('div');
-    lessonItem.className = 'lesson-item';
-    
-    const docId = normalizeDocId(day, lesson);
-    const homework = homeworkMap.get(docId);
-    const isLanguageLesson = lesson.includes('Иностранный');
-    const isSplitLesson = lesson.includes('(м.)') || lesson.includes('(д.)');
-
-    let homeworkHTML = '';
-    if (isLanguageLesson) {
-        homeworkHTML = `
-            <div class="special-homework-container">
-                <div class="special-homework english-homework${homework?.englishTest ? ' test' : ''}${homework?.englishExam ? ' exam' : ''}">
-                    <span class="subject-label">🇬🇧 Английский</span>
-                    ${homework?.englishText ? `
-                        <p class="homework-text">${homework.englishText}</p>
-                    ` : ''}
-                </div>
-                <div class="special-homework german-homework${homework?.germanTest ? ' test' : ''}${homework?.germanExam ? ' exam' : ''}">
-                    <span class="subject-label">🇩🇪 Немецкий</span>
-                    ${homework?.germanText ? `
-                        <p class="homework-text">${homework.germanText}</p>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-    } else if (isSplitLesson) {
-        homeworkHTML = `
-            <div class="special-homework-container">
-                <div class="special-homework info-homework${homework?.firstGroupTest ? ' test' : ''}${homework?.firstGroupExam ? ' exam' : ''}">
-                    <span class="subject-label">💻 Информатика</span>
-                    ${homework?.firstGroupText ? `<div class="homework-text">${homework.firstGroupText}</div>` : ''}
-                </div>
-                <div class="special-homework labor-homework${homework?.secondGroupTest ? ' test' : ''}${homework?.secondGroupExam ? ' exam' : ''}">
-                    <span class="subject-label">🛠️ Труды</span>
-                    ${homework?.secondGroupText ? `<div class="homework-text">${homework.secondGroupText}</div>` : ''}
-                </div>
-            </div>
-        `;
-    } else {
-        if (homework) {
-            if (homework.isTest) lessonItem.classList.add('test');
-            if (homework.isExam) lessonItem.classList.add('exam');
-            homeworkHTML = homework.text ? `<div class="homework-text">${homework.text}</div>` : '';
-        }
+    const satDoc = await db.collection("settings").doc("saturday").get();
+    if (satDoc.exists && satDoc.data().enabled) {
+      saturdayEnabled = true;
+      currentSchedule["Суббота"] = [
+        ...currentSchedule[satDoc.data().scheduleFrom],
+      ];
+      if (isAdmin) {
+        document.getElementById("saturdayToggle").textContent =
+          "Убрать субботу";
+        document.getElementById("saturdaySchedule").style.display = "block";
+        document.getElementById("saturdaySchedule").value =
+          satDoc.data().scheduleFrom;
+      }
     }
 
-    lessonItem.innerHTML = `
-        <div class="lesson-header">
-            <span class="lesson-name">${lesson}</span>
-            <span class="lesson-time">${LESSON_TIMES[index]}</span>
-        </div>
-        ${homeworkHTML}
-    `;
-
-    if (isAdmin) {
-        lessonItem.style.cursor = 'pointer';
-        lessonItem.onclick = () => showHomeworkModal(day, lesson, isLanguageLesson, isSplitLesson);
-    }
-
-    return lessonItem;
-}
-
-// Обновляем функцию создания карточки дня
-function createDayCard(day, lessons, homeworkMap) {
-    const dayCard = document.createElement('div');
-    dayCard.className = 'day-card';
-    
-    const dayHeader = document.createElement('div');
-    dayHeader.className = 'day-header';
-    dayHeader.innerHTML = `<h2 class="day-name">${day}</h2>`;
-    
-    const lessonsList = document.createElement('div');
-    lessonsList.className = 'lessons-list';
-    
-    lessons.forEach((lesson, index) => {
-        const lessonItem = createLessonItem(day, lesson, index, homeworkMap);
-        lessonsList.appendChild(lessonItem);
-    });
-    
-    dayCard.appendChild(dayHeader);
-    dayCard.appendChild(lessonsList);
-    return dayCard;
-}
-
-// Обновляем функцию setupCheckboxHandlers
-function setupCheckboxHandlers() {
-    const setupPair = (testBox, examBox) => {
-        if (testBox && examBox) {
-            testBox.addEventListener('change', () => {
-                if (testBox.checked) examBox.checked = false;
-            });
-            examBox.addEventListener('change', () => {
-                if (examBox.checked) testBox.checked = false;
-            });
-        }
-    };
-
-    // Для обычных предметов
-    setupPair(
-        document.querySelector('input[name="homeworkTest"]'),
-        document.querySelector('input[name="homeworkExam"]')
-    );
-
-    // Для английского языка
-    setupPair(
-        document.querySelector('input[name="englishTest"]'),
-        document.querySelector('input[name="englishExam"]')
-    );
-
-    // Для немецкого языка
-    setupPair(
-        document.querySelector('input[name="germanTest"]'),
-        document.querySelector('input[name="germanExam"]')
-    );
-
-    // Для первой группы
-    setupPair(
-        document.querySelector('input[name="firstGroupTest"]'),
-        document.querySelector('input[name="firstGroupExam"]')
-    );
-
-    // Для второй группы
-    setupPair(
-        document.querySelector('input[name="secondGroupTest"]'),
-        document.querySelector('input[name="secondGroupExam"]')
-    );
-}
-
-// Показ модального окна для домашнего задания
-function showHomeworkModal(day, lesson, isLanguageLesson, isSplitLesson) {
-    const modal = document.getElementById('homeworkModal');
-    document.body.classList.add('modal-open');
-    const selectedLesson = document.getElementById('selectedLesson');
-    const homeworkText = document.getElementById('homeworkText');
-    const languageSection = document.getElementById('languageSection');
-    const splitSection = document.getElementById('splitSection');
-    const homeworkMarks = document.querySelector('.homework-marks');
-
-    selectedLesson.textContent = `${day}: ${lesson}`;
-    modal.dataset.day = day;
-    modal.dataset.lesson = lesson;
-
-    // Сбрасываем все чекбоксы и поля
-    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-        checkbox.checked = false;
-    });
-    document.querySelectorAll('textarea').forEach(textarea => {
-        textarea.value = '';
+    DAYS_ORDER.forEach((day) => {
+      if (currentSchedule[day] && (day !== "Суббота" || saturdayEnabled)) {
+        container.appendChild(createDayCard(day, currentSchedule[day]));
+      }
     });
 
-    if (isLanguageLesson) {
-        homeworkText.style.display = 'none';
-        homeworkMarks.style.display = 'none';
-        languageSection.style.display = 'block';
-        splitSection.style.display = 'none';
-    } else if (isSplitLesson) {
-        homeworkText.style.display = 'none';
-        homeworkMarks.style.display = 'none';
-        languageSection.style.display = 'none';
-        splitSection.style.display = 'block';
-    } else {
-        homeworkText.style.display = 'block';
-        homeworkMarks.style.display = 'block';
-        languageSection.style.display = 'none';
-        splitSection.style.display = 'none';
-    }
-
-    // Устанавливаем обработчики чекбоксов
-    setupCheckboxHandlers();
-
-    // Загружаем существующее домашнее задание
-    loadExistingHomework(day, lesson, isLanguageLesson, isSplitLesson);
-    modal.style.display = 'block';
+    // Рисуем inline-предложения для админа
+    if (isAdmin) renderInlineProposals();
+  } catch (e) {
+    container.innerHTML = `<div style="color:red">Ошибка: ${e.message}</div>`;
+  }
 }
 
-// Закрытие модального окна
-function closeModal() {
-    document.getElementById('homeworkModal').style.display = 'none';
-    document.body.classList.remove('modal-open');
-}
+window.toggleSaturday = async function () {
+  const toggleBtn = document.getElementById("saturdayToggle");
+  const scheduleSelect = document.getElementById("saturdaySchedule");
 
-// Обновляем функцию загрузки существующего домашнего задания
-async function loadExistingHomework(day, lesson, isLanguageLesson, isSplitLesson) {
-    try {
-        const docId = normalizeDocId(day, lesson);
-    const homeworkDoc = await db.collection('homework')
-            .doc(docId)
-        .get();
+  saturdayEnabled = !saturdayEnabled;
 
-        if (homeworkDoc.exists) {
-            const data = homeworkDoc.data();
-            if (isLanguageLesson) {
-                document.getElementById('englishText').value = data.englishText || '';
-                document.getElementById('germanText').value = data.germanText || '';
-                document.querySelector('input[name="englishTest"]').checked = data.englishTest || false;
-                document.querySelector('input[name="englishExam"]').checked = data.englishExam || false;
-                document.querySelector('input[name="germanTest"]').checked = data.germanTest || false;
-                document.querySelector('input[name="germanExam"]').checked = data.germanExam || false;
-            } else if (isSplitLesson) {
-                document.getElementById('firstGroupText').value = data.firstGroupText || '';
-                document.getElementById('secondGroupText').value = data.secondGroupText || '';
-                document.querySelector('input[name="firstGroupTest"]').checked = data.firstGroupTest || false;
-                document.querySelector('input[name="firstGroupExam"]').checked = data.firstGroupExam || false;
-                document.querySelector('input[name="secondGroupTest"]').checked = data.secondGroupTest || false;
-                document.querySelector('input[name="secondGroupExam"]').checked = data.secondGroupExam || false;
-            } else {
-        document.getElementById('homeworkText').value = data.text || '';
-                document.querySelector('input[name="homeworkTest"]').checked = data.isTest || false;
-                document.querySelector('input[name="homeworkExam"]').checked = data.isExam || false;
-            }
-        }
-    } catch (error) {
-        console.error('Ошибка при загрузке домашнего задания:', error);
-    }
-}
+  if (saturdayEnabled) {
+    toggleBtn.textContent = "Убрать субботу";
+    scheduleSelect.style.display = "block";
+    currentSchedule["Суббота"] = [...currentSchedule[scheduleSelect.value]];
+  } else {
+    toggleBtn.textContent = "Добавить субботу";
+    scheduleSelect.style.display = "none";
+    delete currentSchedule["Суббота"];
+  }
 
-// Обновляем функцию сохранения домашнего задания
-async function saveHomework() {
-    try {
-        const modal = document.getElementById('homeworkModal');
-        const day = modal.dataset.day;
-        const lesson = modal.dataset.lesson;
-        const docId = normalizeDocId(day, lesson);
-        
-        const isLanguageLesson = lesson.includes('Иностранный');
-        const isSplitLesson = lesson.includes('(м.)') || lesson.includes('(д.)');
+  try {
+    await db
+      .collection("settings")
+      .doc("saturday")
+      .set({
+        enabled: saturdayEnabled,
+        scheduleFrom: saturdayEnabled ? scheduleSelect.value : null,
+      });
+    await db
+      .collection("system")
+      .doc("version")
+      .set(
+        { number: firebase.firestore.FieldValue.increment(1) },
+        { merge: true },
+      );
 
-        let homeworkData = {
-            day,
-            lesson,
-            isLanguageLesson,
-            isSplitLesson,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-
-        if (isLanguageLesson) {
-            Object.assign(homeworkData, {
-                englishText: document.getElementById('englishText').value,
-                germanText: document.getElementById('germanText').value,
-                englishTest: document.querySelector('input[name="englishTest"]').checked,
-                englishExam: document.querySelector('input[name="englishExam"]').checked,
-                germanTest: document.querySelector('input[name="germanTest"]').checked,
-                germanExam: document.querySelector('input[name="germanExam"]').checked
-            });
-        } else if (isSplitLesson) {
-            Object.assign(homeworkData, {
-                firstGroupText: document.getElementById('firstGroupText').value,
-                secondGroupText: document.getElementById('secondGroupText').value,
-                firstGroupTest: document.querySelector('input[name="firstGroupTest"]').checked,
-                firstGroupExam: document.querySelector('input[name="firstGroupExam"]').checked,
-                secondGroupTest: document.querySelector('input[name="secondGroupTest"]').checked,
-                secondGroupExam: document.querySelector('input[name="secondGroupExam"]').checked
-            });
-        } else {
-            Object.assign(homeworkData, {
-                text: document.getElementById('homeworkText').value,
-                isTest: document.querySelector('input[name="homeworkTest"]').checked,
-                isExam: document.querySelector('input[name="homeworkExam"]').checked
-            });
-        }
-
-        // Сохраняем в Firebase
-        await db.collection('homework').doc(docId).set(homeworkData);
-        
-        // Увеличиваем версию
-        await db.collection('system').doc('version').set({
-            number: firebase.firestore.FieldValue.increment(1)
-        }, { merge: true });
-
-        // Обновляем кэш
-        cachedHomework.set(docId, homeworkData);
-        
-        // Обновляем отображение
-        await loadSchedule();
-        closeModal();
-    } catch (error) {
-        console.error('Ошибка при сохранении:', error);
-        showNotification('Ошибка', 'Не удалось сохранить домашнее задание', 'error');
-    }
-}
-
-// Обновляем функцию toggleSaturday
-async function toggleSaturday() {
-    const toggleBtn = document.getElementById('saturdayToggle');
-    const scheduleSelect = document.getElementById('saturdaySchedule');
-    
-    saturdayEnabled = !saturdayEnabled;
-    
-    if (saturdayEnabled) {
-        toggleBtn.textContent = 'Убрать субботу';
-        scheduleSelect.style.display = 'block';
-        
-        // Получаем выбранный день для расписания
-        const selectedDay = scheduleSelect.value;
-        currentSchedule['Суббота'] = [...currentSchedule[selectedDay]];
-    } else {
-        toggleBtn.textContent = 'Добавить субботу';
-        scheduleSelect.style.display = 'none';
-        delete currentSchedule['Суббота'];
-    }
-    
-    try {
-        // Сохраняем настройки субботы
-        await db.collection('settings').doc('saturday').set({
-            enabled: saturdayEnabled,
-            scheduleFrom: saturdayEnabled ? scheduleSelect.value : null
-        });
-
-        // Увеличиваем версию при изменении субботы
-        await db.collection('system').doc('version').set({
-            number: firebase.firestore.FieldValue.increment(1)
-        }, { merge: true });
-
-        // Очищаем кэш и перезагружаем расписание
-        cachedSchedule = null;
-        cachedHomework.clear();
-        await loadSchedule();
-    } catch (error) {
-        console.error('Ошибка при обновлении настроек субботы:', error);
-    }
-}
-
-// Обновляем функцию logout
-function logout() {
-    clearInterval(updateInterval);
-    deleteCookie('isAdmin');
     cachedSchedule = null;
     cachedHomework.clear();
-    window.location.href = '/';
-}
+    await loadSchedule();
+  } catch (error) {
+    alert("Ошибка при обновлении настроек субботы");
+  }
+};
 
-// Закрытие модального окна при клике вне его
-window.onclick = function(event) {
-    const modal = document.getElementById('homeworkModal');
-    if (event.target == modal) {
-        closeModal();
-    }
-}
-
-// Также обновим обработчик изменения дня для субботы
-document.getElementById('saturdaySchedule')?.addEventListener('change', async (e) => {
+document
+  .getElementById("saturdaySchedule")
+  ?.addEventListener("change", async (e) => {
     if (saturdayEnabled) {
-        currentSchedule['Суббота'] = [...currentSchedule[e.target.value]];
-        
-        try {
-            // Сохраняем новые настройки
-            await db.collection('settings').doc('saturday').set({
-                enabled: true,
-                scheduleFrom: e.target.value
-            });
-
-            // Увеличиваем версию
-            await db.collection('system').doc('version').set({
-                number: firebase.firestore.FieldValue.increment(1)
-            }, { merge: true });
-
-            loadSchedule();
-        } catch (error) {
-            console.error('Ошибка при обновлении дня субботы:', error);
-        }
+      currentSchedule["Суббота"] = [...currentSchedule[e.target.value]];
+      try {
+        await db.collection("settings").doc("saturday").set({
+          enabled: true,
+          scheduleFrom: e.target.value,
+        });
+        await db
+          .collection("system")
+          .doc("version")
+          .set(
+            { number: firebase.firestore.FieldValue.increment(1) },
+            { merge: true },
+          );
+        loadSchedule();
+      } catch (error) {}
     }
-});
+  });
 
-// После инициализации Firebase добавьте:
-const homeworkRef = db.collection('homework');
+function createLessonItem(day, lesson, index) {
+  const item = document.createElement("div");
+  item.className = "lesson-item";
+  item.dataset.index = index;
 
-// Функция обновления UI
-function updateHomeworkUI(homework) {
-    const dayCard = document.querySelector(`[data-day="${homework.day}"]`);
-    if (!dayCard) return;
+  const hw = cachedHomework.get(normalizeDocId(day, lesson));
+  const isLang = lesson.includes("Иностранный");
+  const isSplit = lesson.includes("(м.)") || lesson.includes("(д.)");
 
-    const lessonItem = dayCard.querySelector(`[data-lesson="${homework.lesson}"]`);
-    if (!lessonItem) return;
+  let hwHTML = "";
+  if (isLang) {
+    hwHTML = `<div class="special-homework-container">
+            <div class="special-homework ${hw?.englishTest ? "test" : ""} ${hw?.englishExam ? "exam" : ""}">
+                <span class="subject-label">🇬🇧 Английский</span>${hw?.englishText ? `<div class="homework-text">${hw.englishText}</div>` : ""}
+            </div>
+            <div class="special-homework ${hw?.germanTest ? "test" : ""} ${hw?.germanExam ? "exam" : ""}">
+                <span class="subject-label">🇩🇪 Немецкий</span>${hw?.germanText ? `<div class="homework-text">${hw.germanText}</div>` : ""}
+            </div>
+        </div>`;
+  } else if (isSplit) {
+    hwHTML = `<div class="special-homework-container">
+            <div class="special-homework ${hw?.firstGroupTest ? "test" : ""} ${hw?.firstGroupExam ? "exam" : ""}">
+                <span class="subject-label">💻 Информатика</span>${hw?.firstGroupText ? `<div class="homework-text">${hw.firstGroupText}</div>` : ""}
+            </div>
+            <div class="special-homework ${hw?.secondGroupTest ? "test" : ""} ${hw?.secondGroupExam ? "exam" : ""}">
+                <span class="subject-label">🛠️ Труды</span>${hw?.secondGroupText ? `<div class="homework-text">${hw.secondGroupText}</div>` : ""}
+            </div>
+        </div>`;
+  } else if (hw) {
+    if (hw.isTest) item.classList.add("test");
+    if (hw.isExam) item.classList.add("exam");
+    if (hw.text) hwHTML = `<div class="homework-text">${hw.text}</div>`;
+  }
 
-    const homeworkContainer = lessonItem.querySelector('.homework-container');
-    if (!homeworkContainer) return;
+  item.innerHTML = `
+        <div class="lesson-header"><span class="lesson-name">${lesson}</span><span class="lesson-time">${LESSON_TIMES[index] || ""}</span></div>
+        ${hwHTML}
+        <div class="proposals-container"></div>
+    `;
 
-    // Очищаем контейнер
-    homeworkContainer.innerHTML = '';
+  item.style.cursor = "pointer";
 
-    if (homework.isLanguageLesson) {
-        // Для иностранных языков
-        if (homework.englishText) {
-            const englishDiv = createHomeworkElement(
-                '🇬🇧 Английский', 
-                homework.englishText, 
-                homework.englishTest, 
-                homework.englishExam
-            );
-            homeworkContainer.appendChild(englishDiv);
-        }
-        if (homework.germanText) {
-            const germanDiv = createHomeworkElement(
-                '🇩🇪 Немецкий', 
-                homework.germanText, 
-                homework.germanTest, 
-                homework.germanExam
-            );
-            homeworkContainer.appendChild(germanDiv);
-        }
-    } else if (homework.isSplitLesson) {
-        // Для информатики/трудов
-        if (homework.firstGroupText) {
-            const infoDiv = createHomeworkElement(
-                '💻 Информатика', 
-                homework.firstGroupText, 
-                homework.firstGroupTest, 
-                homework.firstGroupExam
-            );
-            homeworkContainer.appendChild(infoDiv);
-        }
-        if (homework.secondGroupText) {
-            const laborDiv = createHomeworkElement(
-                '🛠️ Труды', 
-                homework.secondGroupText, 
-                homework.secondGroupTest, 
-                homework.secondGroupExam
-            );
-            homeworkContainer.appendChild(laborDiv);
-        }
+  if (isAdmin) {
+    item.onclick = (e) => {
+      // Если кликнули по кнопкам inline-предложения, не открываем модалку ДЗ
+      if (e.target.tagName === "BUTTON") return;
+      showHomeworkModal(day, lesson, isLang, isSplit, index);
+    };
+  } else {
+    item.onclick = () => showProposeModal(day, lesson, index, isLang, isSplit);
+    item.innerHTML += `<div class="propose-hint">✎ Предложить ДЗ</div>`;
+  }
+
+  return item;
+}
+
+function createDayCard(day, lessons) {
+  const card = document.createElement("div");
+  card.className = "day-card";
+  card.dataset.day = day;
+  card.innerHTML = `<div class="day-header"><h2 class="day-name">${day}</h2></div><div class="lessons-list"></div>`;
+  const list = card.querySelector(".lessons-list");
+  lessons.forEach((l, i) => list.appendChild(createLessonItem(day, l, i)));
+  return card;
+}
+
+// Связывание чекбоксов (Самостоятельная / Контрольная)
+function setupCheckboxHandlers() {
+  const setupPair = (t, e) => {
+    if (t && e) {
+      t.onchange = () => {
+        if (t.checked) e.checked = false;
+      };
+      e.onchange = () => {
+        if (e.checked) t.checked = false;
+      };
+    }
+  };
+  setupPair(
+    document.querySelector('input[name="homeworkTest"]'),
+    document.querySelector('input[name="homeworkExam"]'),
+  );
+  setupPair(
+    document.querySelector('input[name="englishTest"]'),
+    document.querySelector('input[name="englishExam"]'),
+  );
+  setupPair(
+    document.querySelector('input[name="germanTest"]'),
+    document.querySelector('input[name="germanExam"]'),
+  );
+  setupPair(
+    document.querySelector('input[name="firstGroupTest"]'),
+    document.querySelector('input[name="firstGroupExam"]'),
+  );
+  setupPair(
+    document.querySelector('input[name="secondGroupTest"]'),
+    document.querySelector('input[name="secondGroupExam"]'),
+  );
+}
+
+// --- АДМИН: РЕДАКТИРОВАНИЕ ДЗ И НАЗВАНИЯ ---
+window.showHomeworkModal = function (day, lesson, isLang, isSplit, index) {
+  const m = document.getElementById("homeworkModal");
+  m.dataset.day = day;
+  m.dataset.lesson = lesson;
+  m.dataset.index = index;
+
+  document.getElementById("adminLessonName").value = lesson;
+
+  m.querySelectorAll('input[type="checkbox"]').forEach(
+    (c) => (c.checked = false),
+  );
+  m.querySelectorAll("textarea").forEach((t) => (t.value = ""));
+
+  document.getElementById("normalSection").style.display =
+    !isLang && !isSplit ? "block" : "none";
+  document.getElementById("languageSection").style.display = isLang
+    ? "block"
+    : "none";
+  document.getElementById("splitSection").style.display = isSplit
+    ? "block"
+    : "none";
+
+  setupCheckboxHandlers();
+
+  const hw = cachedHomework.get(normalizeDocId(day, lesson));
+  if (hw) {
+    if (isLang) {
+      document.getElementById("englishText").value = hw.englishText || "";
+      document.getElementById("germanText").value = hw.germanText || "";
+      document.querySelector('input[name="englishTest"]').checked =
+        hw.englishTest || false;
+      document.querySelector('input[name="englishExam"]').checked =
+        hw.englishExam || false;
+      document.querySelector('input[name="germanTest"]').checked =
+        hw.germanTest || false;
+      document.querySelector('input[name="germanExam"]').checked =
+        hw.germanExam || false;
+    } else if (isSplit) {
+      document.getElementById("firstGroupText").value = hw.firstGroupText || "";
+      document.getElementById("secondGroupText").value =
+        hw.secondGroupText || "";
+      document.querySelector('input[name="firstGroupTest"]').checked =
+        hw.firstGroupTest || false;
+      document.querySelector('input[name="firstGroupExam"]').checked =
+        hw.firstGroupExam || false;
+      document.querySelector('input[name="secondGroupTest"]').checked =
+        hw.secondGroupTest || false;
+      document.querySelector('input[name="secondGroupExam"]').checked =
+        hw.secondGroupExam || false;
     } else {
-        // Для обычных предметов
-        if (homework.text) {
-            const homeworkDiv = createHomeworkElement(
-                '', 
-                homework.text, 
-                homework.isTest, 
-                homework.isExam
-            );
-            homeworkContainer.appendChild(homeworkDiv);
+      document.getElementById("homeworkText").value = hw.text || "";
+      document.querySelector('input[name="homeworkTest"]').checked =
+        hw.isTest || false;
+      document.querySelector('input[name="homeworkExam"]').checked =
+        hw.isExam || false;
+    }
+  }
+
+  document.body.classList.add("modal-open");
+  m.style.display = "flex";
+  requestAnimationFrame(() => m.classList.add("is-visible"));
+};
+
+window.saveHomework = async function () {
+  const m = document.getElementById("homeworkModal");
+  const day = m.dataset.day;
+  const oldLesson = m.dataset.lesson;
+  const index = parseInt(m.dataset.index);
+  const newLesson =
+    document.getElementById("adminLessonName").value.trim() || oldLesson;
+
+  const isLang = newLesson.includes("Иностранный");
+  const isSplit = newLesson.includes("(м.)") || newLesson.includes("(д.)");
+
+  let hwData = {
+    day,
+    lesson: newLesson,
+    isLanguageLesson: isLang,
+    isSplitLesson: isSplit,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+  };
+
+  if (isLang) {
+    hwData.englishText = document.getElementById("englishText").value;
+    hwData.germanText = document.getElementById("germanText").value;
+    hwData.englishTest = document.querySelector(
+      'input[name="englishTest"]',
+    ).checked;
+    hwData.englishExam = document.querySelector(
+      'input[name="englishExam"]',
+    ).checked;
+    hwData.germanTest = document.querySelector(
+      'input[name="germanTest"]',
+    ).checked;
+    hwData.germanExam = document.querySelector(
+      'input[name="germanExam"]',
+    ).checked;
+  } else if (isSplit) {
+    hwData.firstGroupText = document.getElementById("firstGroupText").value;
+    hwData.secondGroupText = document.getElementById("secondGroupText").value;
+    hwData.firstGroupTest = document.querySelector(
+      'input[name="firstGroupTest"]',
+    ).checked;
+    hwData.firstGroupExam = document.querySelector(
+      'input[name="firstGroupExam"]',
+    ).checked;
+    hwData.secondGroupTest = document.querySelector(
+      'input[name="secondGroupTest"]',
+    ).checked;
+    hwData.secondGroupExam = document.querySelector(
+      'input[name="secondGroupExam"]',
+    ).checked;
+  } else {
+    hwData.text = document.getElementById("homeworkText").value;
+    hwData.isTest = document.querySelector(
+      'input[name="homeworkTest"]',
+    ).checked;
+    hwData.isExam = document.querySelector(
+      'input[name="homeworkExam"]',
+    ).checked;
+  }
+
+  try {
+    if (newLesson !== oldLesson) {
+      const schedRef = db.collection("schedule").doc("main");
+      const schedDoc = await schedRef.get();
+      let mainSched = schedDoc.exists ? schedDoc.data() : {};
+      
+      // Убеждаемся, что день существует в расписании
+      if (!mainSched[day]) {
+        if (currentSchedule[day]) {
+          mainSched[day] = [...currentSchedule[day]];
+        } else {
+          throw new Error(`Расписание для дня "${day}" не найдено`);
         }
+      }
+      
+      mainSched[day][index] = newLesson;
+      await schedRef.set(mainSched);
+      await db
+        .collection("homework")
+        .doc(normalizeDocId(day, oldLesson))
+        .delete();
     }
 
-    // Обновляем классы для стилей
-    lessonItem.classList.toggle('test', homework.isTest);
-    lessonItem.classList.toggle('exam', homework.isExam);
-}
+    await db
+      .collection("homework")
+      .doc(normalizeDocId(day, newLesson))
+      .set(hwData);
+    await db
+      .collection("system")
+      .doc("version")
+      .set(
+        { number: firebase.firestore.FieldValue.increment(1) },
+        { merge: true },
+      );
 
-function createHomeworkElement(label, text, isTest, isExam) {
-    const div = document.createElement('div');
-    div.className = 'homework-text';
-    if (isTest) div.classList.add('has-test');
-    if (isExam) div.classList.add('has-exam');
+    closeModal();
+    loadSchedule();
+  } catch (e) {
+    alert("Ошибка при сохранении: " + e.message);
+  }
+};
 
-    if (label) {
-        const labelSpan = document.createElement('span');
-        labelSpan.className = 'language-label';
-        labelSpan.textContent = label;
-        div.appendChild(labelSpan);
-    }
+// --- ПОЛЬЗОВАТЕЛЬ: ПРЕДЛОЖЕНИЕ ДЗ ---
+window.showProposeModal = function (day, lesson, index, isLang, isSplit) {
+  const m = document.getElementById("proposeModal");
+  m.dataset.day = day;
+  m.dataset.lesson = lesson;
+  m.dataset.index = index;
+  m.dataset.isLang = isLang;
+  m.dataset.isSplit = isSplit;
 
-    const textSpan = document.createElement('span');
-    textSpan.textContent = text;
-    div.appendChild(textSpan);
+  document.getElementById("proposeSelectedLesson").textContent =
+    `${day}: ${lesson}`;
+  m.querySelectorAll("textarea").forEach((t) => (t.value = ""));
 
-    return div;
-}
+  document.getElementById("proposeNormalSection").style.display =
+    !isLang && !isSplit ? "block" : "none";
+  document.getElementById("proposeLangSection").style.display = isLang
+    ? "block"
+    : "none";
+  document.getElementById("proposeSplitSection").style.display = isSplit
+    ? "block"
+    : "none";
 
-// Функция удаления ДЗ из UI
-function removeHomeworkFromUI(homework) {
-    const dayElement = document.querySelector(`[data-day="${homework.day}"]`);
-    if (!dayElement) return;
-
-    const lessonElement = dayElement.querySelector(`[data-lesson="${homework.lesson}"]`);
-    if (!lessonElement) return;
-
-    const homeworkElement = lessonElement.querySelector('.homework-text');
-    if (homeworkElement) {
-        homeworkElement.remove();
-    }
-}
-
-// Обновляем функцию deleteHomework
-async function deleteHomework(day, lesson) {
-    try {
-        await homeworkRef.doc(`${day}_${lesson}`).delete();
-        
-        // Увеличиваем версию при удалении
-        await db.collection('system').doc('version').set({
-            number: firebase.firestore.FieldValue.increment(1)
-        }, { merge: true });
-    } catch (error) {
-        showNotification('Ошибка', 'Не удалось удалить домашнее задание', 'error');
-    }
-}
-
-// Функция для установки темы
-function setTheme(isDark) {
-    if (isDark) {
-        document.body.classList.add('dark-theme');
-        document.documentElement.classList.add('dark-theme');
-        localStorage.setItem('theme', 'dark');
+  const hw = cachedHomework.get(normalizeDocId(day, lesson));
+  if (hw) {
+    if (isLang) {
+      document.getElementById("proposeEngText").value = hw.englishText || "";
+      document.getElementById("proposeGerText").value = hw.germanText || "";
+    } else if (isSplit) {
+      document.getElementById("proposeFirstText").value =
+        hw.firstGroupText || "";
+      document.getElementById("proposeSecondText").value =
+        hw.secondGroupText || "";
     } else {
-        document.body.classList.remove('dark-theme');
-        document.documentElement.classList.remove('dark-theme');
-        localStorage.setItem('theme', 'light');
+      document.getElementById("proposeNormText").value = hw.text || "";
     }
+  }
+
+  document.body.classList.add("modal-open");
+  m.style.display = "flex";
+  requestAnimationFrame(() => m.classList.add("is-visible"));
+};
+
+window.submitProposal = async function () {
+  const m = document.getElementById("proposeModal");
+  const day = m.dataset.day;
+  const lesson = m.dataset.lesson;
+  const index = m.dataset.index;
+  const isLang = m.dataset.isLang === "true";
+  const isSplit = m.dataset.isSplit === "true";
+
+  let proposes = {};
+  if (isLang) {
+    if (document.getElementById("proposeEngText").value.trim())
+      proposes.englishText = document
+        .getElementById("proposeEngText")
+        .value.trim();
+    if (document.getElementById("proposeGerText").value.trim())
+      proposes.germanText = document
+        .getElementById("proposeGerText")
+        .value.trim();
+  } else if (isSplit) {
+    if (document.getElementById("proposeFirstText").value.trim())
+      proposes.firstGroupText = document
+        .getElementById("proposeFirstText")
+        .value.trim();
+    if (document.getElementById("proposeSecondText").value.trim())
+      proposes.secondGroupText = document
+        .getElementById("proposeSecondText")
+        .value.trim();
+  } else {
+    if (document.getElementById("proposeNormText").value.trim())
+      proposes.text = document.getElementById("proposeNormText").value.trim();
+  }
+
+  if (Object.keys(proposes).length === 0)
+    return alert("Введите текст предложения!");
+
+  try {
+    await db.collection("proposals").add({
+      day,
+      lesson,
+      lessonIndex: parseInt(index),
+      proposes,
+      status: "pending",
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    alert("Ваше предложение успешно отправлено администратору!");
+    closeProposeModal();
+  } catch (e) {
+    alert("Ошибка при отправке предложения: " + e.message);
+  }
+};
+
+// --- АДМИН: СЛУШАТЕЛЬ ПРЕДЛОЖЕНИЙ (INLINE) ---
+function setupProposalsListener() {
+  db.collection("proposals")
+    .where("status", "==", "pending")
+    .onSnapshot((snap) => {
+      pendingProposals = [];
+      snap.forEach((doc) =>
+        pendingProposals.push({ id: doc.id, ...doc.data() }),
+      );
+      renderInlineProposals();
+    });
 }
 
-// Функция переключения темы
-function toggleTheme() {
-    const isDarkTheme = document.body.classList.contains('dark-theme');
-    setTheme(!isDarkTheme);
+function renderInlineProposals() {
+  // Очищаем старые
+  document
+    .querySelectorAll(".proposals-container")
+    .forEach((c) => (c.innerHTML = ""));
+
+  pendingProposals.forEach((p) => {
+    // Находим нужный урок в DOM
+    const container = document.querySelector(
+      `.day-card[data-day="${p.day}"] .lesson-item[data-index="${p.lessonIndex}"] .proposals-container`,
+    );
+    if (!container) return;
+
+    const div = document.createElement("div");
+    div.className = "inline-proposal";
+
+    let html =
+      '<div class="inline-proposal-header">Новое предложение:</div><div class="inline-proposal-text">';
+    if (p.proposes.text) html += `<div>${p.proposes.text}</div>`;
+    if (p.proposes.englishText)
+      html += `<div><strong>Англ:</strong> ${p.proposes.englishText}</div>`;
+    if (p.proposes.germanText)
+      html += `<div><strong>Нем:</strong> ${p.proposes.germanText}</div>`;
+    if (p.proposes.firstGroupText)
+      html += `<div><strong>Инфо:</strong> ${p.proposes.firstGroupText}</div>`;
+    if (p.proposes.secondGroupText)
+      html += `<div><strong>Труды:</strong> ${p.proposes.secondGroupText}</div>`;
+
+    html += `</div>
+            <div class="inline-proposal-actions">
+                <button class="approve" onclick="approveProposal('${p.id}')">✅ Одобрить</button>
+                <button class="reject" onclick="rejectProposal('${p.id}')">❌ Отклонить</button>
+            </div>
+        `;
+    div.innerHTML = html;
+    container.appendChild(div);
+  });
 }
 
-// Загружаем тему из localStorage при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    // Используем сохраненную тему, если она есть, иначе используем светлую тему (по умолчанию)
-    if (savedTheme === 'dark') {
-        setTheme(true);
-    } else if (savedTheme === 'light') {
-        setTheme(false);
-    } else {
-        // Если нет сохраненных предпочтений, используем светлую тему
-        setTheme(false);
-    }
-});
- 
+window.approveProposal = async function (id) {
+  const p = pendingProposals.find((x) => x.id === id);
+  if (!p) return;
+  try {
+    const docId = normalizeDocId(p.day, p.lesson);
+    await db
+      .collection("homework")
+      .doc(docId)
+      .set(
+        {
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          day: p.day,
+          lesson: p.lesson,
+          ...p.proposes,
+        },
+        { merge: true },
+      );
+
+    await db.collection("proposals").doc(id).delete();
+    await db
+      .collection("system")
+      .doc("version")
+      .set(
+        { number: firebase.firestore.FieldValue.increment(1) },
+        { merge: true },
+      );
+
+    alert("Предложение одобрено и применено!");
+    loadSchedule();
+  } catch (e) {
+    alert("Ошибка при одобрении: " + e.message);
+  }
+};
+
+window.rejectProposal = async function (id) {
+  if (confirm("Вы действительно хотите удалить это предложение?")) {
+    await db.collection("proposals").doc(id).delete();
+  }
+};
+
+// --- УПРАВЛЕНИЕ МОДАЛКАМИ ---
+window.closeModal = function () {
+  const m = document.getElementById("homeworkModal");
+  m.classList.remove("is-visible");
+  setTimeout(() => (m.style.display = "none"), 250);
+  if (!document.querySelector(".modal.is-visible"))
+    document.body.classList.remove("modal-open");
+};
+
+window.closeProposeModal = function () {
+  const m = document.getElementById("proposeModal");
+  m.classList.remove("is-visible");
+  setTimeout(() => (m.style.display = "none"), 250);
+  if (!document.querySelector(".modal.is-visible"))
+    document.body.classList.remove("modal-open");
+};
+
+window.onclick = function (e) {
+  if (e.target.classList.contains("modal")) {
+    closeModal();
+    closeProposeModal();
+  }
+};

@@ -10,7 +10,6 @@
     --success-color: #34c759;
     --lesson-bg: #f8f8f8;
     --card-bg: #ffffff;
-    
     --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-size-xl: 24px;
     --font-size-lg: 18px;
@@ -21,773 +20,209 @@
     --font-weight-regular: 400;
 }
 
-:root.dark-theme {
-    --background: #1c1c1e;
-    --card-bg: #2c2c2e;
-    --text-primary: #ffffff;
-    --text-secondary: #98989f;
-    --border-color: #3c3c3e;
-    --lesson-bg: #3c3c3e;
+/* --- ФИКС ЧЕКБОКСОВ (Ровное выравнивание) --- */
+.mark-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: var(--font-size-md);
+    color: var(--text-primary);
+    cursor: pointer;
 }
 
+body.design-new .modal-content .mark-label input[type="checkbox"],
+body.design-new .modal-content .language-marks .mark-label input[type="checkbox"],
+body.design-new .modal-content .homework-marks .mark-label input[type="checkbox"] {
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 2px solid rgba(136, 233, 172, 0.55);
+    background: rgba(20, 54, 34, 0.6);
+    position: relative;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    flex-shrink: 0; /* Чтобы чекбокс не сплющивался */
+    margin: 0;
+}
+
+body.design-new .modal-content .mark-label input[type="checkbox"]:checked {
+    background: linear-gradient(135deg, #54ffa6, #22c76b);
+    border-color: rgba(48, 220, 120, 0.9);
+    box-shadow: 0 6px 16px rgba(48, 220, 120, 0.35);
+}
+
+body.design-new .modal-content .mark-label input[type="checkbox"]::after {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    border-radius: 3px;
+    opacity: 0;
+    transform: scale(0.6);
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 10"><polyline points="1.5 5.5 4.5 8.5 10.5 1.5" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>') center/contain no-repeat;
+    transition: all 0.18s ease;
+}
+
+body.design-new .modal-content .mark-label input[type="checkbox"]:checked::after {
+    opacity: 1;
+    transform: scale(1);
+}
+
+body.design-new .modal-content .mark-label {
+    color: rgba(228, 255, 238, 0.95);
+    font-weight: 500;
+}
+
+/* --- ГЛОБАЛЬНЫЕ СТИЛИ (ТОЛЬКО DARK THEME) --- */
 body {
     margin: 0;
     padding: 0;
     font-family: var(--font-primary);
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-regular);
-    background-color: #f5f5f5;
+    background-color: #050507;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }
 
-body.dark-theme {
-    background-color: #000000;
-}
-
-body.dark-theme :root {
-    color-scheme: dark;
+body.design-new {
+    font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #f4f4f5;
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 48px 32px 80px;
 }
 
 header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    margin-bottom: 24px;
-    gap: 16px;
-    position: relative;
+    gap: 24px;
     width: 100%;
     text-align: center;
+    margin-bottom: 24px;
 }
 
 h1 {
-    font-size: var(--font-size-xl);
+    font-size: 52px;
     font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-    margin: 50px 0 0 0;
-    text-align: center;
-    width: 100%;
+    color: #f4f4f5;
+    margin: 0;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
 }
 
 .date-info {
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-regular);
-    color: var(--text-secondary);
-    text-align: center;
-    width: 100%;
-}
-
-.admin-controls {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    margin: 16px 0;
-}
-
-.admin-controls > div {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.admin-controls button,
-.saturday-select {
-    min-width: 150px;
-    margin: 0;
-    padding: 8px 12px;
-    border-radius: 6px;
-}
-
-#saturdayToggle,
-.saturday-select {
-    height: 36px;
-    font-size: var(--font-size-sm);
-}
-
-#saturdayToggle {
-    background-color: var(--warning-color);
-    color: white;
-}
-
-button[onclick="logout"] {
-    background-color: var(--error-color);
-    color: white;
+    font-size: 16px;
+    color: rgba(244, 244, 245, 0.7);
 }
 
 .schedule-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 32px;
     margin-top: 20px;
 }
 
 .day-card {
-    background: var(--card-bg);
+    background: rgba(19, 19, 28, 0.8);
     border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    min-width: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .day-header {
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgba(244, 244, 245, 0.08);
 }
 
 .day-name {
-    font-size: var(--font-size-lg);
+    font-size: 26px;
     font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
     margin: 0;
+    letter-spacing: -0.01em;
 }
 
 .lesson-item {
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    background: var(--lesson-bg);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    transform-origin: center;
-    min-height: 60px;
+    padding: 20px 18px;
+    border-radius: 0rem;
+    margin-bottom: 18px;
+    background: rgba(24, 24, 33, 0.9);
+    border: 1px solid rgba(244, 244, 245, 0.06);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
-    width: 100%;
-    box-sizing: border-box;
+    transition: all 0.25s ease;
 }
 
 .lesson-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-6px);
+    box-shadow: 0 26px 60px rgba(0, 0, 0, 0.18);
+    border-color: rgba(244, 244, 245, 0.18);
 }
 
 .lesson-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 4px;
-    width: 100%;
+    align-items: center;
+    margin-bottom: 12px;
 }
 
 .lesson-name {
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-medium);
-    color: var(--text-primary);
+    font-size: 20px;
+    font-weight: 600;
     flex: 1;
     margin-right: 16px;
     word-wrap: break-word;
-    min-width: 0;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .lesson-time {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-regular);
-    color: var(--text-secondary);
+    font-size: 15px;
+    color: rgba(244, 244, 245, 0.52);
     white-space: nowrap;
     flex-shrink: 0;
 }
 
 .homework-text {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-regular);
-    color: var(--text-secondary);
-    margin: 4px 0 0 12px;
-    padding: 0;
-    width: 100%;
+    font-size: 15px;
+    line-height: 1.45;
+    color: rgba(244, 244, 245, 0.7);
+    margin: 4px 0 0 0;
+    white-space: pre-wrap;
 }
 
-/* Создаем базовый класс для всех специальных типов домашних заданий */
+/* Спец ДЗ (языки и труды) */
 .special-homework {
     margin-top: 4px;
     padding: 12px;
-    background: var(--card-bg);
+    background: rgba(19, 19, 28, 0.8);
     border-radius: 8px;
     margin-bottom: 8px;
-    border-left: 0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
+    border: 1px solid rgba(244, 244, 245, 0.06);
 }
 
-/* Стили для контейнера специальных домашних заданий */
-.special-homework-container {
-    margin-top: 8px;
-    width: 100%;
-    padding-left: 8px;
-}
-
-/* Метка предмета внутри специального домашнего задания */
 .special-homework .subject-label {
-    font-weight: var(--font-weight-medium);
-    color: var(--text-secondary);
-    margin-right: 8px;
-    display: inline-block;
-    margin-bottom: 4px;
-}
-
-/* Текст домашнего задания внутри специального домашнего задания */
-.special-homework .homework-text {
-    margin-top: 4px;
-    margin-left: 0;
-    padding-left: 0;
-    color: var(--text-primary);
-}
-
-/* Стили для тестов и экзаменов */
-.special-homework.test {
-    background: #3a3522;
-    border-left: 4px solid var(--warning-color);
-    padding-left: 16px;
-}
-
-.special-homework.exam {
-    background: #3a2222;
-    border-left: 4px solid var(--error-color);
-    padding-left: 16px;
-}
-
-/* Применяем existing-code к общим стилям (удаляем индивидуальные стили) */
-.english-homework,
-.german-homework,
-.info-homework,
-.labor-homework {
-    /* Эти классы теперь должны наследовать свойства от .special-homework */
-}
-
-body.dark-theme .special-homework {
-    border-color: var(--border-color);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-/* Убираем дублирующиеся стили */
-body.dark-theme .english-homework,
-body.dark-theme .german-homework,
-body.dark-theme .info-homework,
-body.dark-theme .labor-homework {
-    /* Эти классы теперь должны наследовать свойства от body.dark-theme .special-homework */
-}
-
-/* Уточнение для темной темы */
-body.dark-theme .special-homework.test {
-    background: #3a3522;
-    border-left: 4px solid var(--warning-color);
-}
-
-body.dark-theme .special-homework.exam {
-    background: #3a2222;
-    border-left: 4px solid var(--error-color);
-}
-
-body.dark-theme .day-card {
-    background: var(--card-bg);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-body.dark-theme .lesson-item {
-    background: var(--lesson-bg);
-}
-
-body.dark-theme .lesson-item:hover {
-    background: #4c4c4e;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-body.dark-theme .english-homework,
-body.dark-theme .german-homework,
-body.dark-theme .info-homework,
-body.dark-theme .labor-homework {
-    background: var(--card-bg);
-    border-color: var(--border-color);
-}
-
-body.dark-theme .lesson-item.test,
-body.dark-theme .english-homework.test,
-body.dark-theme .german-homework.test,
-body.dark-theme .info-homework.test,
-body.dark-theme .labor-homework.test {
-    background: #3a3522;
-    border-left: 4px solid var(--warning-color);
-}
-
-body.dark-theme .lesson-item.exam,
-body.dark-theme .english-homework.exam,
-body.dark-theme .german-homework.exam,
-body.dark-theme .info-homework.exam,
-body.dark-theme .labor-homework.exam {
-    background: #3a2222;
-    border-left: 4px solid var(--error-color);
-}
-
-body.dark-theme .mark-label input[type="checkbox"] {
-    accent-color: var(--primary-color);
-}
-
-body.dark-theme .lesson-number {
-    background: var(--text-secondary);
-    color: var(--background);
-}
-
-/* Стили для модального окна в тёмной теме */
-body.dark-theme .modal-content {
-    background: var(--background);
-    color: var(--text-primary);
-}
-
-/* Стили для всех текстовых полей */
-body.dark-theme .modal-content textarea,
-body.dark-theme #homeworkText,
-body.dark-theme #englishText,
-body.dark-theme #germanText,
-body.dark-theme #firstGroupText,
-body.dark-theme #secondGroupText {
-    background: #2c2c2e;
-    color: var(--text-primary);
-    border-color: var(--border-color);
-}
-
-/* Стили для контейнеров языков/групп */
-body.dark-theme .language-input,
-body.dark-theme .split-homework {
-    background: #2c2c2e;
-    border-color: var(--border-color);
-}
-
-/* Стили для меток */
-body.dark-theme .mark-label,
-body.dark-theme .language-label {
-    color: var(--text-primary);
-}
-
-/* Стили для кнопок */
-body.dark-theme .modal-buttons button:not(.primary) {
-    background: #3c3c3e;
-    color: var(--text-primary);
-}
-
-/* Стили для чекбоксов */
-body.dark-theme input[type="checkbox"] {
-    accent-color: var(--primary-color);
-}
-
-/* Модальное окно */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    overflow: auto;
-}
-
-body.modal-open {
-    overflow: hidden;
-}
-
-.modal-content {
-    background: var(--background);
-    border-radius: 12px;
-    padding: 24px;
-    width: 90%;
-    max-width: 500px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.modal-content h2 {
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-bold);
-    margin: 0 0 20px 0;
-    color: var(--text-primary);
-}
-
-#homeworkText,
-.language-input textarea {
-    width: calc(100% - 32px);
-    height: 80px;
-    padding: 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    margin: 8px auto;
-    font-family: var(--font-primary);
-    font-size: var(--font-size-md);
-    resize: none;
     display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: rgba(244, 244, 245, 0.6);
 }
 
-.language-input {
-    margin-bottom: 24px;
-    padding: 16px;
-    border-radius: 8px;
-    background: var(--background);
-    border: 1px solid var(--border-color);
-    width: calc(100% - 32px);
-    margin-left: auto;
-    margin-right: auto;
+/* --- ЦВЕТА САМОСТОЯТЕЛЬНЫХ И КОНТРОЛЬНЫХ --- */
+.special-homework.test, .lesson-item.test {
+    background: #3a3522 !important;
+    border-left: 4px solid var(--warning-color) !important;
 }
 
-.language-marks,
-.homework-marks {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 12px;
+.special-homework.exam, .lesson-item.exam {
+    background: #3a2222 !important;
+    border-left: 4px solid var(--error-color) !important;
 }
 
-.homework-marks {
-    margin-bottom: 16px;
-}
-
-.mark-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: var(--font-size-md);
-    color: var(--text-primary);
-    cursor: pointer;
-}
-
-.mark-label input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    margin: 0;
-}
-
-.lesson-marks {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 20px;
-}
-
-.lesson-marks label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--text-secondary);
-}
-
-.modal-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 24px;
-}
-
-.modal-buttons button {
-    padding: 8px 16px;
-    border-radius: 6px;
-    border: none;
-    font-size: var(--font-size-md);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.modal-buttons button.primary {
-    background-color: var(--primary-color);
-    color: white;
-}
-
-.modal-buttons button:not(.primary) {
-    background-color: var(--border-color);
-}
-
-.modal-buttons button:hover {
-    opacity: 0.9;
-}
-
-/* Стили для кнопки возврата */
-.back-button {
-    position: absolute;
-    left: 0;
-    top: 0;
-    padding: 8px 16px;
-    background: var(--background);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.back-button:hover {
-    background: var(--border-color);
-    color: var(--text-primary);
-}
-
-/* Стили для выбора расписания субботы */
-.saturday-select {
-    padding: 0 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    background: var(--background);
-    color: var(--text-primary);
-    cursor: pointer;
-    margin-left: 12px;
-}
-
-/* Новая структура легенды для гарантированного центрирования */
-.schedule-legend {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    width: 100%;
-    margin: 16px 0;
-    text-align: center;
-    flex-wrap: wrap;
-}
-
-.legend-item {
-    display: inline-block;
-    margin: 4px 0;
-    text-align: center;
-}
-
-.legend-color {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
-    vertical-align: middle;
-    margin-right: 6px;
-}
-
-.legend-item span {
-    display: inline-block;
-    vertical-align: middle;
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-}
-
-.lesson-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex: 1;
-}
-
-.lesson-number {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-bold);
-    color: var(--text-secondary);
-    background: var(--border-color);
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-/* Стили для админских кнопок */
-.admin-controls button {
-    padding: 8px 16px;
-    border-radius: 6px;
-    border: none;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-/* Стили для обычной кнопки выхода */
-.regular-controls {
-    display: flex;
-    justify-content: center;
-    margin-top: 16px;
-}
-
-.exit-button {
-    padding: 8px 16px;
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: var(--font-size-md);
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.2s ease;
-}
-
-.exit-button:hover {
-    opacity: 0.9;
-}
-
-/* Медиа-запрос для мобильных устройств */
-@media (max-width: 768px) {
-    h1 {
-        font-size: calc(var(--font-size-lg) + 2px);
-        padding: 0 10px;
-        width: 100%;
-        box-sizing: border-box;
-    }
-    
-    .schedule-legend {
-        flex-direction: column;
-        gap: 8px;
-    }
-    
-    .legend-item {
-        width: auto;
-        max-width: 200px;
-    }
-    
-    .date-info {
-        padding: 0 10px;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    header {
-        padding-top: 40px;
-    }
-
-    .admin-controls > div {
-        flex-direction: column;
-        width: 100%;
-        max-width: 300px;
-    }
-
-    .admin-controls button,
-    .saturday-select {
-        width: 100%;
-        margin: 4px 0;
-    }
-
-    .container {
-        padding: 10px;
-    }
-
-    .day-card {
-        margin-bottom: 16px;
-    }
-
-    .regular-controls {
-        width: 100%;
-    }
-
-    .exit-button {
-        width: 100%;
-        max-width: 300px;
-        text-align: center;
-    }
-
-    .theme-toggle {
-        justify-content: center;
-        width: auto;
-        max-width: 170px;
-        margin: 8px auto;
-    }
-    
-    .legend-color {
-        flex-shrink: 0;
-    }
-}
-
-/* Улучшение для среднеразмерных экранов */
-@media (min-width: 769px) {
-    .schedule-legend {
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 16px;
-    }
-    
-    .legend-item {
-        margin: 0;
-    }
-}
-
-.homework-text.has-test::before {
-    content: "📝";
-    margin-right: 5px;
-}
-
-.homework-text.has-exam::before {
-    content: "📚";
-    margin-right: 5px;
-}
-
-/* Стили для переключателя темы */
-.theme-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin: 8px auto;
-    cursor: pointer;
-    padding: 6px 12px;
-    border-radius: 16px;
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    transition: all 0.3s ease;
-    width: fit-content;
-}
-
-.theme-toggle .toggle-switch {
-    position: relative;
-    width: 44px;
-    height: 22px;
-    background-color: #ccc;
-    border-radius: 11px;
-    transition: background-color 0.3s;
-}
-
-body.dark-theme .theme-toggle .toggle-switch {
-    background-color: var(--primary-color);
-}
-
-.theme-toggle .toggle-switch::before {
-    content: "";
-    position: absolute;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background-color: white;
-    top: 2px;
-    left: 2px;
-    transition: transform 0.3s;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-body.dark-theme .theme-toggle .toggle-switch::before {
-    transform: translateX(22px);
-}
-
-.theme-toggle .toggle-label {
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-    font-weight: var(--font-weight-medium);
-}
-
-@media (max-width: 768px) {
-    .theme-toggle {
-        justify-content: center;
-        width: auto;
-        max-width: 170px;
-        margin: 8px auto;
-    }
-}
-
-/* Восстанавливаем стили для цветовых индикаторов */
 .legend-color.test {
     background: #fff9e6;
     border-left: 3px solid var(--warning-color);
@@ -798,35 +233,280 @@ body.dark-theme .theme-toggle .toggle-switch::before {
     border-left: 3px solid var(--error-color);
 }
 
-/* Улучшаем стили для lesson-item в светлой теме */
-.lesson-item.test {
-    background: #fff9e6 !important; /* Светло-желтый фон */
-    border-left: 4px solid var(--warning-color) !important;
-    padding-left: 16px;
+/* --- ИКОНКИ ДЛЯ ДЗ (Эмодзи) --- */
+.lesson-item.test > .homework-text::before,
+.special-homework.test .homework-text::before {
+    content: "📝 ";
+}
+.lesson-item.exam > .homework-text::before,
+.special-homework.exam .homework-text::before {
+    content: "📚 ";
 }
 
-.lesson-item.exam {
-    background: #ffe6e6 !important; /* Светло-красный фон */
-    border-left: 4px solid var(--error-color) !important;
-    padding-left: 16px;
+
+/* --- СТИЛИ МОДАЛОК СО СКРОЛЛОМ ДЛЯ МОБИЛОК --- */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(14px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    transition: opacity 0.25s ease;
 }
 
-/* Стили для темной темы (уже существующие, но улучшим их) */
-body.dark-theme .lesson-item.test {
-    background: #3a3522 !important;
-    border-left: 4px solid var(--warning-color) !important;
+.modal.is-visible {
+    display: flex;
+    opacity: 1;
 }
 
-body.dark-theme .lesson-item.exam {
-    background: #3a2222 !important;
-    border-left: 4px solid var(--error-color) !important;
+.modal-content {
+    background: radial-gradient(circle at top, rgba(36, 80, 52, 0.38), rgba(12, 24, 20, 0.94));
+    color: rgba(226, 252, 236, 0.92);
+    border: 1px solid rgba(138, 224, 168, 0.38);
+    box-shadow: 0 42px 110px rgba(0, 0, 0, 0.6);
+    border-radius: 4px;
+    width: min(760px, 100%);
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh; /* Ограничение по высоте экрана */
+    transform: translateY(16px);
+    transition: transform 0.25s ease;
 }
 
-/* Удаляем пояснительные "значки" перед текстом уроков */
-.lesson-item.test .lesson-name::before {
-    content: none;
+.modal.is-visible .modal-content {
+    transform: translateY(0);
 }
 
-.lesson-item.exam .lesson-name::before {
-    content: none;
+.modal-body {
+    overflow-y: auto; /* Контент внутри скроллится */
+    flex: 1;
+    margin-bottom: 24px;
+    padding-right: 8px;
+}
+
+/* Скроллбар */
+.modal-body::-webkit-scrollbar { width: 6px; }
+.modal-body::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); border-radius: 4px; }
+.modal-body::-webkit-scrollbar-thumb { background: rgba(122, 214, 154, 0.3); border-radius: 4px; }
+
+.modal-content h2 {
+    margin: 0 0 20px 0;
+    font-size: 26px;
+    color: rgba(234, 255, 240, 0.95);
+    flex-shrink: 0;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-shrink: 0; /* Кнопки не сжимаются и остаются внизу */
+}
+
+.modal-buttons button {
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    background: rgba(244, 244, 245, 0.12);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.modal-buttons button.primary {
+    background: rgba(122, 214, 154, 0.3);
+    color: #e4ffec;
+    border: 1px solid rgba(122, 214, 154, 0.5);
+}
+
+/* Инпуты */
+.edit-input, textarea {
+    width: 100%;
+    padding: 16px 18px;
+    border: 1px solid rgba(90, 188, 126, 0.5);
+    border-radius: 6px;
+    background: rgba(16, 48, 30, 0.68);
+    color: #ffffff;
+    font-family: var(--font-primary);
+    font-size: 16px;
+    box-sizing: border-box;
+    margin-top: 8px;
+}
+
+.edit-input::placeholder, textarea::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+textarea { min-height: 100px; resize: vertical; }
+
+.language-input {
+    margin-bottom: 24px;
+    padding: 20px;
+    border-radius: 8px;
+    background: rgba(48, 94, 60, 0.28);
+    border: 1px solid rgba(122, 214, 154, 0.35);
+}
+
+.language-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.homework-marks, .language-marks {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+/* --- INLINE ПРЕДЛОЖЕНИЯ В РАСПИСАНИИ --- */
+.proposals-container {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.inline-proposal {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px dashed rgba(34, 197, 94, 0.4);
+    border-radius: 8px;
+    padding: 12px;
+    cursor: default; /* Чтобы клик по блоку не открывал ДЗ */
+}
+
+.inline-proposal-header {
+    color: #4ade80;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+}
+
+.inline-proposal-text {
+    font-size: 14px;
+    color: #e4ffec;
+    white-space: pre-wrap;
+    line-height: 1.4;
+}
+
+.inline-proposal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.inline-proposal-actions button {
+    flex: 1;
+    padding: 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.inline-proposal-actions button.approve {
+    background: rgba(34, 197, 94, 0.2);
+    color: #bbf7d0;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.inline-proposal-actions button.reject {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fecaca;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* --- КНОПКИ АДМИНКИ И ПРОЧЕЕ --- */
+.admin-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    width: 100%;
+}
+
+.admin-btn {
+    background: rgba(244, 244, 245, 0.1) !important;
+    border: 1px solid rgba(244, 244, 245, 0.18) !important;
+    color: #fff !important;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    font-family: var(--font-primary);
+}
+
+.admin-btn.exit-btn, .exit-button {
+    background: rgba(220, 53, 69, 0.15) !important;
+    border: 1px solid rgba(220, 53, 69, 0.3) !important;
+    color: #ffc2c6 !important;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.saturday-select {
+    padding: 10px 16px;
+}
+
+.schedule-legend { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.legend-item { display: inline-flex; align-items: center; gap: 10px; font-size: 14px; color: rgba(244, 244, 245, 0.6); }
+.legend-color { width: 18px; height: 18px; border-radius: 6px; }
+
+.propose-hint {
+    font-size: 12px;
+    color: rgba(244, 244, 245, 0.4);
+    text-align: right;
+    margin-top: 12px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.lesson-item:hover .propose-hint { opacity: 1; }
+
+.mobile-hint {
+    display: none;
+    background: rgba(48, 94, 60, 0.28);
+    border: 1px solid rgba(122, 214, 154, 0.35);
+    color: rgba(228, 255, 236, 0.9);
+    padding: 14px 18px;
+    border-radius: 8px;
+    text-align: center;
+    margin: 0 0 24px 0;
+    font-size: 15px;
+}
+
+/* --- АДАПТИВНОСТЬ --- */
+@media (max-width: 768px) {
+    .container { padding: 24px 16px 80px; }
+    h1 { font-size: 32px; }
+    .mobile-hint.show-on-mobile { display: block; }
+    .propose-hint { display: none !important; }
+    
+    .admin-controls > div { 
+        flex-direction: column !important; 
+        align-items: stretch !important; 
+    }
+    .admin-btn, .saturday-select { 
+        width: 100% !important; 
+    }
+    
+    .modal { padding: 16px; }
+    .modal-content { max-height: 95vh; padding: 24px 20px; }
+    .modal-buttons { flex-direction: column-reverse; align-items: stretch; }
 }

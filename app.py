@@ -41,7 +41,7 @@ def homework():
         if request.method == 'GET':
             homework_ref = db.collection('homework')
             docs = homework_ref.stream()
-            homework_list = []
+            homework_list =[]
             for doc in docs:
                 homework_list.append(doc.to_dict())
             return jsonify(homework_list)

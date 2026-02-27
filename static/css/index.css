@@ -1,18 +1,31 @@
 body {
     margin: 0;
     padding: 0;
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     background-color: #f5f5f5;
 }
 
+body.design-new {
+    background-color: var(--color-bg-muted);
+    color: var(--color-text);
+}
+
+body.design-new.dark-theme {
+    background-color: var(--color-bg);
+}
+
 .container {
-    max-width: 500px;
-    width: 90%;
+    max-width: 520px;
+    width: min(90%, 520px);
     margin: 0 auto;
     text-align: center;
+}
+
+body.design-new .container {
+    text-align: left;
 }
 
 .main-card {
@@ -20,6 +33,23 @@ body {
     border-radius: 12px;
     padding: 40px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+body.design-new .main-card {
+    background: var(--color-card-bg);
+    border-radius: var(--border-radius);
+    padding: 56px 64px;
+    box-shadow: 0 32px 80px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+body.design-new.dark-theme .main-card {
+    background: var(--color-card-bg);
+    border: 1px solid rgba(244, 244, 245, 0.08);
+    box-shadow: 0 40px 120px rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
 }
 
 h1 {
@@ -29,10 +59,21 @@ h1 {
     font-weight: 500;
 }
 
+body.design-new h1 {
+    font-size: 42px;
+    line-height: 1.1;
+    color: var(--color-text);
+    letter-spacing: -0.02em;
+}
+
 .buttons {
     display: flex;
     flex-direction: column;
     gap: 16px;
+}
+
+body.design-new .buttons {
+    gap: 18px;
 }
 
 button {
@@ -45,9 +86,29 @@ button {
     width: 100%;
 }
 
+body.design-new button {
+    padding: 18px 28px;
+    border-radius: var(--border-radius);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
 .view-btn {
     background: #0066FF;
     color: white;
+}
+
+body.design-new .view-btn {
+    background: var(--color-primary-bg);
+    color: var(--color-primary-text);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 12px 22px rgba(176, 245, 130, 0.35);
+}
+
+body.design-new.dark-theme .view-btn {
+    border-color: rgba(142, 232, 126, 0.25);
+    box-shadow: 0 20px 40px rgba(142, 232, 126, 0.3);
 }
 
 .admin-btn {
@@ -55,8 +116,29 @@ button {
     color: #666;
 }
 
+body.design-new .admin-btn {
+    background: transparent;
+    color: var(--color-secondary-text);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+body.design-new.dark-theme .admin-btn {
+    color: var(--color-secondary-bg);
+    border: 1px solid rgba(244, 244, 245, 0.18);
+    background: rgba(17, 17, 23, 0.6);
+}
+
 button:hover {
     opacity: 0.9;
+}
+
+body.design-new button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
+}
+
+body.design-new.dark-theme button:hover {
+    box-shadow: 0 22px 50px rgba(0, 0, 0, 0.35);
 }
 
 /* Стили для модального окна */
@@ -67,57 +149,96 @@ button:hover {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
 }
 
-.modal-content {
-    background: white;
-    border-radius: 12px;
-    padding: 30px;
-    width: 90%;
-    max-width: 400px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+.modal.is-visible {
+    opacity: 1;
 }
 
-.modal-content h2 {
-    margin: 0 0 24px 0;
-    color: #333;
-    font-size: 24px;
-    font-weight: 500;
+body.design-new .modal-content {
+    width: min(420px, calc(100% - 32px));
+    padding: 28px 32px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    text-align: left;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    background: var(--color-popover-bg);
+    color: var(--color-popover-text);
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
 }
 
-.modal-content input {
+body.design-new.dark-theme .modal-content {
+    border: 1px solid rgba(244, 244, 245, 0.12);
+    box-shadow: 0 32px 90px rgba(0, 0, 0, 0.55);
+}
+
+body.design-new .modal-content h2 {
+    margin: 0;
+    font-size: 22px;
+    color: var(--color-text);
+}
+
+body.design-new .modal-content input {
     width: 100%;
     padding: 12px 16px;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    margin-bottom: 24px;
+    background: var(--color-input-bg);
+    color: var(--color-text);
+    border: 1px solid var(--color-input-border);
+    border-radius: calc(var(--border-radius) - 2px);
     box-sizing: border-box;
-    font-size: 16px;
+}
+
+body.design-new .modal-content input:focus {
+    outline: 2px solid var(--color-input-focus);
+    outline-offset: 2px;
+}
+
+.modal.is-visible .modal-content {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .modal-buttons {
     display: flex;
     gap: 12px;
-    justify-content: flex-end;
+    justify-content: space-between;
 }
 
 .modal-buttons button {
-    padding: 12px 24px;
-    width: auto;
+    flex: 1 1 50%;
+    min-width: 120px;
+    padding: 12px 0;
 }
 
-.modal-buttons button.primary {
-    background: #0066FF;
-    color: white;
+body.design-new .modal-buttons button {
+    border-radius: var(--border-radius);
 }
 
-.modal-buttons button:not(.primary) {
-    background: #f5f5f5;
-    color: #666;
+body.design-new .modal-buttons button.primary {
+    background: var(--color-secondary-bg);
+    color: var(--color-secondary-text);
+}
+
+body.design-new .modal-buttons button:not(.primary) {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--color-text-muted);
+}
+
+body.design-new.dark-theme .modal-buttons button:not(.primary) {
+    background: rgba(244, 244, 245, 0.08);
+    color: var(--color-text);
 }
 
 /* Стили для footer с незаметной ссылкой */
@@ -139,4 +260,26 @@ button:hover {
 
 .admin-link:hover {
     color: #666;
+}
+
+
+/* Адаптация для мобильных */
+@media (max-width: 480px) {
+    body.design-new h1 {
+        font-size: 32px;
+    }
+    
+    body.design-new .main-card {
+        padding: 40px 32px;
+    }
+}
+
+@media (max-width: 360px) {
+    body.design-new h1 {
+        font-size: 28px;
+    }
+    
+    body.design-new .main-card {
+        padding: 32px 24px;
+    }
 }

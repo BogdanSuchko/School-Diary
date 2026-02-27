@@ -232,18 +232,6 @@ h1 {
     background: #ffe6e6;
     border-left: 3px solid var(--error-color);
 }
-
-/* --- ИКОНКИ ДЛЯ ДЗ (Эмодзи) --- */
-.lesson-item.test > .homework-text::before,
-.special-homework.test .homework-text::before {
-    content: "📝 ";
-}
-.lesson-item.exam > .homework-text::before,
-.special-homework.exam .homework-text::before {
-    content: "📚 ";
-}
-
-
 /* --- СТИЛИ МОДАЛОК СО СКРОЛЛОМ ДЛЯ МОБИЛОК --- */
 .modal {
     display: none;

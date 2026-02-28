@@ -479,6 +479,12 @@ textarea { min-height: 100px; resize: vertical; }
     font-size: 15px;
 }
 
+/* Скрываем подсказку когда админ панель активна */
+#adminControls:not([style*="display: none"]) ~ .schedule-container .mobile-hint,
+body:has(#adminControls:not([style*="display: none"])) .mobile-hint {
+    display: none !important;
+}
+
 /* --- АДАПТИВНОСТЬ --- */
 @media (max-width: 768px) {
     .container { padding: 24px 16px 80px; }

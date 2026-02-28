@@ -49,11 +49,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (isAdmin) {
     document.getElementById("adminControls").style.display = "flex";
     document.getElementById("regularControls").style.display = "none";
+    document.getElementById("mobileProposeHint").style.display = "none";
     setupProposalsListener();
   } else {
-    document
-      .getElementById("mobileProposeHint")
-      .classList.add("show-on-mobile");
+    document.getElementById("mobileProposeHint").style.display = "block";
     try {
       const v = await db.collection("system").doc("version").get();
       if (v.exists) lastVersion = v.data().number || 0;

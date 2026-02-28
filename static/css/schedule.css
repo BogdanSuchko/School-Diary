@@ -468,7 +468,7 @@ textarea { min-height: 100px; resize: vertical; }
 .lesson-item:hover .propose-hint { opacity: 1; }
 
 .mobile-hint {
-    display: none;
+    display: block;
     background: rgba(48, 94, 60, 0.28);
     border: 1px solid rgba(122, 214, 154, 0.35);
     color: rgba(228, 255, 236, 0.9);
@@ -483,7 +483,6 @@ textarea { min-height: 100px; resize: vertical; }
 @media (max-width: 768px) {
     .container { padding: 24px 16px 80px; }
     h1 { font-size: 32px; }
-    .mobile-hint.show-on-mobile { display: block; }
     .propose-hint { display: none !important; }
     
     .admin-controls > div { 

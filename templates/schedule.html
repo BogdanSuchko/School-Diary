@@ -34,11 +34,13 @@
             
             <!-- Кнопка выйти для обычного просмотра -->
             <div id="regularControls" class="regular-controls">
+                <button onclick="showArchiveModal()" class="archive-btn">Архив</button>
                 <a href="/" class="exit-button">Выйти</a>
             </div>
             
             <!-- Админские контролы -->
             <div id="adminControls" class="admin-controls" style="display: none;">
+                <button onclick="showArchiveModal()" class="admin-btn archive-btn">Архив</button>
                 <button onclick="toggleSaturday()" id="saturdayToggle" class="admin-btn">Добавить субботу</button>
                 <select id="saturdaySchedule" class="saturday-select admin-btn" style="display: none;">
                     <option value="Понедельник">Понедельник</option>
@@ -53,6 +55,10 @@
 
         <div id="mobileProposeHint" class="mobile-hint">
             💡 Если ты хочешь поделиться тем что тут не записано (или записано неправильно) то просто нажми на урок и напиши правильное дз
+        </div>
+
+        <div id="changesIndicator" class="changes-indicator" style="display: none;" onclick="scrollToChanges()">
+            ↑ Есть изменения выше
         </div>
 
         <div class="schedule-container"></div>
@@ -124,6 +130,7 @@
                 </div>
             </div>
             <div class="modal-buttons">
+                <button onclick="deleteLesson()" class="delete-btn" id="deleteLessonBtn" style="margin-right: auto;">Удалить урок</button>
                 <button onclick="closeModal()">Отмена</button>
                 <button onclick="saveHomework()" class="primary">Сохранить</button>
             </div>
@@ -168,6 +175,21 @@
             <div class="modal-buttons">
                 <button onclick="closeProposeModal()" style="flex: 1;">Отмена</button>
                 <button onclick="submitProposal()" class="primary" style="flex: 1;">Отправить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно архива -->
+    <div id="archiveModal" class="modal">
+        <div class="modal-content archive-modal-content">
+            <h2>Архив расписания</h2>
+            <div class="modal-body">
+                <div id="archiveWeeksList" class="archive-weeks-list">
+                    <div class="archive-loading">Загрузка архива...</div>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button onclick="closeArchiveModal()">Закрыть</button>
             </div>
         </div>
     </div>

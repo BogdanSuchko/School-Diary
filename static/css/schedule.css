@@ -83,6 +83,10 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+body.modal-open {
+    overflow: hidden;
+}
+
 body.design-new {
     font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     color: #f4f4f5;
@@ -118,6 +122,35 @@ h1 {
     color: rgba(244, 244, 245, 0.7);
 }
 
+.week-stats {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    padding: 12px 24px;
+    background: rgba(48, 94, 60, 0.28);
+    border: 1px solid rgba(122, 214, 154, 0.35);
+    border-radius: 8px;
+    margin: 8px 0;
+}
+
+.stat-item {
+    font-size: 15px;
+    color: rgba(244, 244, 245, 0.7);
+}
+
+.stat-item strong {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.stat-item.stat-test strong {
+    color: var(--warning-color);
+}
+
+.stat-item.stat-exam strong {
+    color: var(--error-color);
+}
+
 .schedule-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -130,6 +163,75 @@ h1 {
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.day-card.today {
+    background: rgba(96, 165, 250, 0.12);
+    border: 2px solid rgba(96, 165, 250, 0.4);
+    box-shadow: 0 0 20px rgba(96, 165, 250, 0.2), 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.day-card.today .day-name {
+    color: rgba(96, 165, 250, 0.95);
+}
+
+/* Анимация изменений */
+@keyframes highlight-change {
+    0% {
+        background: rgba(34, 197, 94, 0.3);
+        box-shadow: 0 0 30px rgba(34, 197, 94, 0.5);
+    }
+    100% {
+        background: rgba(24, 24, 33, 0.9);
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+    }
+}
+
+.lesson-item.changed {
+    animation: highlight-change 2s ease-out forwards;
+}
+
+.day-card.changed {
+    animation: highlight-change 2s ease-out forwards;
+}
+
+/* Стрелка уведомления об изменениях */
+.changes-indicator {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(34, 197, 94, 0.95);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 50px;
+    box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
+    display: none;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    z-index: 999;
+    animation: bounce 1s ease-in-out infinite;
+}
+
+.changes-indicator.visible {
+    display: flex;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateX(-50%) translateY(0);
+    }
+    50% {
+        transform: translateX(-50%) translateY(-10px);
+    }
+}
+
+.changes-indicator:hover {
+    background: rgba(34, 197, 94, 1);
+    box-shadow: 0 6px 25px rgba(34, 197, 94, 0.6);
 }
 
 .day-header {
@@ -163,6 +265,28 @@ h1 {
     border-color: rgba(244, 244, 245, 0.18);
 }
 
+/* Подсветка текущего урока */
+.lesson-item.current-lesson {
+    background: rgba(96, 165, 250, 0.15) !important;
+    border: 2px solid rgba(96, 165, 250, 0.5) !important;
+    box-shadow: 0 0 20px rgba(96, 165, 250, 0.3), 0 24px 70px rgba(0, 0, 0, 0.5) !important;
+    animation: pulse-current 2s ease-in-out infinite;
+}
+
+@keyframes pulse-current {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(96, 165, 250, 0.3), 0 24px 70px rgba(0, 0, 0, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(96, 165, 250, 0.5), 0 24px 70px rgba(0, 0, 0, 0.5);
+    }
+}
+
+.lesson-item.current-lesson .lesson-time {
+    color: rgba(96, 165, 250, 0.9);
+    font-weight: 600;
+}
+
 .lesson-header {
     display: flex;
     justify-content: space-between;
@@ -193,6 +317,21 @@ h1 {
     color: rgba(244, 244, 245, 0.7);
     margin: 4px 0 0 0;
     white-space: pre-wrap;
+}
+
+/* Стили для кликабельных ссылок в ДЗ */
+.homework-text .hw-link {
+    color: #60a5fa;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 2px;
+    transition: all 0.2s ease;
+    word-break: break-all;
+}
+
+.homework-text .hw-link:hover {
+    color: #93c5fd;
+    text-decoration-style: solid;
 }
 
 /* Спец ДЗ (языки и труды) */
@@ -314,6 +453,40 @@ h1 {
     border: 1px solid rgba(122, 214, 154, 0.5);
 }
 
+.modal-buttons button.delete-btn {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fecaca;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.modal-buttons button.delete-btn:hover {
+    background: rgba(239, 68, 68, 0.3);
+}
+
+/* Пустая карточка для добавления урока */
+.add-lesson-item {
+    padding: 20px 18px;
+    margin-bottom: 18px;
+    border-radius: 0rem;
+    background: rgba(122, 214, 154, 0.1);
+    border: 2px dashed rgba(122, 214, 154, 0.4);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px;
+    color: rgba(122, 214, 154, 0.8);
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.add-lesson-item:hover {
+    background: rgba(122, 214, 154, 0.15);
+    border-color: rgba(122, 214, 154, 0.6);
+    transform: translateY(-2px);
+}
+
 /* Инпуты */
 .edit-input, textarea {
     width: 100%;
@@ -412,10 +585,46 @@ textarea { min-height: 100px; resize: vertical; }
     border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
+.inline-proposal-actions button.edit {
+    background: rgba(96, 165, 250, 0.2);
+    color: #93c5fd;
+    border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
 .inline-proposal-actions button.reject {
     background: rgba(239, 68, 68, 0.2);
     color: #fecaca;
     border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Локальное предложение пользователя */
+.my-proposal {
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 12px;
+}
+
+.my-proposal-header {
+    color: #fbbf24;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+}
+
+.my-proposal-content {
+    font-size: 14px;
+    color: #fef3c7;
+    white-space: pre-wrap;
+    line-height: 1.4;
+}
+
+.my-proposal-content strong {
+    color: #fbbf24;
+    font-weight: 600;
 }
 
 /* --- КНОПКИ АДМИНКИ И ПРОЧЕЕ --- */
@@ -449,6 +658,217 @@ textarea { min-height: 100px; resize: vertical; }
     font-weight: 600;
 }
 
+.archive-btn {
+    background: rgba(96, 165, 250, 0.15) !important;
+    border: 1px solid rgba(96, 165, 250, 0.3) !important;
+    color: #93c5fd !important;
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    font-family: var(--font-primary);
+}
+
+.archive-btn:hover {
+    background: rgba(96, 165, 250, 0.25) !important;
+}
+
+.undo-btn {
+    background: rgba(251, 191, 36, 0.15) !important;
+    border: 1px solid rgba(251, 191, 36, 0.3) !important;
+    color: #fde68a !important;
+}
+
+.undo-btn:hover {
+    background: rgba(251, 191, 36, 0.25) !important;
+}
+
+.regular-controls {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+/* Архив */
+.archive-modal-content {
+    max-width: 900px;
+}
+
+.archive-weeks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.archive-loading {
+    text-align: center;
+    color: rgba(244, 244, 245, 0.5);
+    padding: 40px;
+}
+
+.archive-week-item {
+    background: rgba(48, 94, 60, 0.28);
+    border: 1px solid rgba(122, 214, 154, 0.35);
+    border-radius: 8px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.archive-week-item:hover {
+    background: rgba(48, 94, 60, 0.38);
+    border-color: rgba(122, 214, 154, 0.5);
+}
+
+.archive-week-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.archive-week-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: rgba(228, 255, 236, 0.95);
+}
+
+.archive-week-date {
+    font-size: 14px;
+    color: rgba(228, 255, 236, 0.6);
+}
+
+.archive-delete-btn {
+    padding: 6px 12px;
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fecaca;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.archive-delete-btn:hover {
+    background: rgba(239, 68, 68, 0.3);
+}
+
+.archive-week-content {
+    display: none;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(122, 214, 154, 0.2);
+}
+
+.archive-week-item.expanded .archive-week-content {
+    display: block;
+}
+
+.archive-day {
+    margin-bottom: 20px;
+}
+
+.archive-day-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(228, 255, 236, 0.9);
+    margin-bottom: 12px;
+}
+
+.archive-lesson {
+    background: rgba(24, 24, 33, 0.6);
+    border: 1px solid rgba(244, 244, 245, 0.06);
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 8px;
+}
+
+.archive-lesson-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.archive-lesson-name {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.archive-lesson-time {
+    font-size: 13px;
+    color: rgba(244, 244, 245, 0.5);
+}
+
+.archive-homework {
+    font-size: 14px;
+    color: rgba(244, 244, 245, 0.7);
+    line-height: 1.4;
+    white-space: pre-wrap;
+}
+
+.archive-lesson.test {
+    background: rgba(58, 53, 34, 0.6);
+    border-left: 3px solid var(--warning-color);
+}
+
+.archive-lesson.exam {
+    background: rgba(58, 34, 34, 0.6);
+    border-left: 3px solid var(--error-color);
+}
+
+/* История изменений */
+.change-log-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.change-log-item {
+    background: rgba(24, 24, 33, 0.6);
+    border: 1px solid rgba(244, 244, 245, 0.06);
+    border-radius: 8px;
+    padding: 14px;
+}
+
+.change-log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.change-log-action {
+    font-weight: 600;
+    font-size: 15px;
+    color: rgba(228, 255, 236, 0.9);
+}
+
+.change-log-time {
+    font-size: 13px;
+    color: rgba(244, 244, 245, 0.5);
+}
+
+.change-log-details {
+    font-size: 14px;
+    color: rgba(244, 244, 245, 0.7);
+    line-height: 1.5;
+}
+
+.change-log-item.action-add {
+    border-left: 3px solid rgba(34, 197, 94, 0.6);
+}
+
+.change-log-item.action-edit {
+    border-left: 3px solid rgba(96, 165, 250, 0.6);
+}
+
+.change-log-item.action-delete {
+    border-left: 3px solid rgba(239, 68, 68, 0.6);
+}
+
 .saturday-select {
     padding: 10px 16px;
 }
@@ -479,6 +899,109 @@ textarea { min-height: 100px; resize: vertical; }
     font-size: 15px;
 }
 
+/* Поиск */
+.search-container {
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto 24px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 14px 40px 14px 18px;
+    border: 1px solid rgba(122, 214, 154, 0.35);
+    border-radius: 8px;
+    background: rgba(48, 94, 60, 0.28);
+    color: rgba(228, 255, 236, 0.95);
+    font-family: var(--font-primary);
+    font-size: 15px;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: rgba(122, 214, 154, 0.6);
+    background: rgba(48, 94, 60, 0.38);
+    box-shadow: 0 0 0 3px rgba(122, 214, 154, 0.1);
+}
+
+.search-input::placeholder {
+    color: rgba(228, 255, 236, 0.4);
+}
+
+.clear-search {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fecaca;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.clear-search:hover {
+    background: rgba(239, 68, 68, 0.3);
+}
+
+/* Затемнение уроков при поиске */
+.lesson-item.search-dimmed {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.lesson-item.search-highlight {
+    background: rgba(34, 197, 94, 0.15) !important;
+    border-color: rgba(34, 197, 94, 0.5) !important;
+}
+
+/* Фильтры */
+.filters-container {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    background: rgba(244, 244, 245, 0.1);
+    border: 1px solid rgba(244, 244, 245, 0.18);
+    color: rgba(244, 244, 245, 0.7);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-primary);
+}
+
+.filter-btn:hover {
+    background: rgba(244, 244, 245, 0.15);
+    border-color: rgba(244, 244, 245, 0.3);
+}
+
+.filter-btn.active {
+    background: rgba(122, 214, 154, 0.3);
+    border-color: rgba(122, 214, 154, 0.5);
+    color: #e4ffec;
+}
+
+/* Затемнение при фильтрации */
+.lesson-item.filter-dimmed {
+    opacity: 0.25;
+}
+
 /* Скрываем подсказку когда админ панель активна */
 #adminControls:not([style*="display: none"]) ~ .schedule-container .mobile-hint,
 body:has(#adminControls:not([style*="display: none"])) .mobile-hint {
@@ -502,4 +1025,11 @@ body:has(#adminControls:not([style*="display: none"])) .mobile-hint {
     .modal { padding: 16px; }
     .modal-content { max-height: 95vh; padding: 24px 20px; }
     .modal-buttons { flex-direction: column-reverse; align-items: stretch; }
+}
+
+@media (min-width: 769px) {
+    /* Скрываем индикатор изменений на десктопе */
+    .changes-indicator {
+        display: none !important;
+    }
 }

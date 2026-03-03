@@ -564,19 +564,21 @@ textarea { min-height: 100px; resize: vertical; }
 
 .inline-proposal-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
     margin-top: 12px;
 }
 
 .inline-proposal-actions button {
-    flex: 1;
+    flex: 1 1 auto;
     padding: 8px;
     border-radius: 6px;
     font-weight: 600;
-    font-size: 13px;
+    font-size: 12px;
     border: none;
     cursor: pointer;
     transition: 0.2s;
+    white-space: nowrap;
 }
 
 .inline-proposal-actions button.approve {
@@ -595,6 +597,17 @@ textarea { min-height: 100px; resize: vertical; }
     background: rgba(239, 68, 68, 0.2);
     color: #fecaca;
     border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Мобильная версия - кнопки вертикально */
+@media (max-width: 480px) {
+    .inline-proposal-actions {
+        flex-direction: column;
+    }
+    
+    .inline-proposal-actions button {
+        width: 100%;
+    }
 }
 
 /* Локальное предложение пользователя */

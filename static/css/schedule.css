@@ -769,6 +769,22 @@ textarea { min-height: 100px; resize: vertical; }
     background: rgba(239, 68, 68, 0.3);
 }
 
+.archive-restore-btn {
+    padding: 6px 12px;
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #bfdbfe;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.archive-restore-btn:hover {
+    background: rgba(59, 130, 246, 0.3);
+}
+
 .archive-week-content {
     display: none;
     margin-top: 16px;
@@ -1019,82 +1035,6 @@ textarea { min-height: 100px; resize: vertical; }
 #adminControls:not([style*="display: none"]) ~ .schedule-container .mobile-hint,
 body:has(#adminControls:not([style*="display: none"])) .mobile-hint {
     display: none !important;
-}
-
-/* Уведомление об отмене удаления */
-.undo-notification {
-    position: fixed;
-    bottom: -100px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(34, 197, 94, 0.95);
-    color: white;
-    padding: 16px 24px;
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    z-index: 10000;
-    transition: bottom 0.3s ease;
-    max-width: 90%;
-    width: auto;
-}
-
-.undo-notification.visible {
-    bottom: 24px;
-}
-
-.undo-notification-content {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.undo-notification-text {
-    flex: 1;
-}
-
-.undo-notification-text strong {
-    display: block;
-    font-size: 16px;
-    margin-bottom: 4px;
-}
-
-.undo-notification-timer {
-    font-size: 14px;
-    opacity: 0.9;
-}
-
-.undo-notification-btn {
-    background: white;
-    color: #22c55e;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-}
-
-.undo-notification-btn:hover {
-    background: #f0f0f0;
-    transform: scale(1.05);
-}
-
-@media (max-width: 768px) {
-    .undo-notification {
-        max-width: calc(100% - 32px);
-    }
-    
-    .undo-notification-content {
-        flex-direction: column;
-        gap: 12px;
-        text-align: center;
-    }
-    
-    .undo-notification-btn {
-        width: 100%;
-    }
 }
 
 /* --- АДАПТИВНОСТЬ --- */

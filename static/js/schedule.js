@@ -218,6 +218,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("adminControls").style.display = "flex";
     document.getElementById("regularControls").style.display = "none";
     document.getElementById("mobileProposeHint").style.display = "none";
+    
+    // Добавляем горячую клавишу Ctrl+L для очистки ДЗ
+    document.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "l") {
+        e.preventDefault();
+        showClearHomeworkModal();
+      }
+    });
+    
+    // Очищаем старые бэкапы при загрузке
+    cleanupExpiredBackups();
   } else {
     document.getElementById("mobileProposeHint").style.display = "block";
   }
@@ -1110,6 +1121,8 @@ window.onclick = function (e) {
   if (e.target.classList.contains("modal")) {
     closeModal();
     closeProposeModal();
+    closeClearHomeworkModal();
+    closeArchiveModal();
   }
 };
 
@@ -1471,6 +1484,213 @@ window.closeArchiveModal = function() {
     document.body.classList.remove("modal-open");
   }, 250);
 };
+
+// ============ ОЧИСТКА ДОМАШНИХ ЗАДАНИЙ ============
+
+// Открытие модального окна очистки ДЗ
+window.showClearHomeworkModal = function() {
+  if (!isAdmin) return; // Только для админа
+  
+  const modal = document.getElementById("clearHomeworkModal");
+  document.body.classList.add("modal-open");
+  modal.style.display = "flex";
+  requestAnimationFrame(() => modal.classList.add("is-visible"));
+};
+
+// Закрытие модального окна очистки ДЗ
+window.closeClearHomeworkModal = function() {
+  const modal = document.getElementById("clearHomeworkModal");
+  modal.classList.remove("is-visible");
+  setTimeout(() => {
+    modal.style.display = "none";
+    document.body.classList.remove("modal-open");
+  }, 250);
+};
+
+// Очистка всех домашних заданий
+window.clearAllHomework = async function() {
+  if (!isAdmin) return; // Только для админа
+  
+  try {
+    // 1. Сначала сохраняем архив текущей недели
+    await saveWeeklyArchive();
+    
+    // 2. Получаем все документы из коллекции homework
+    const homeworkSnapshot = await db.collection("homework").get();
+    
+    if (homeworkSnapshot.empty) {
+      alert("Нет домашних заданий для удаления");
+      closeClearHomeworkModal();
+      return;
+    }
+    
+    // 3. Сохраняем все ДЗ во временную коллекцию для возможности отмены
+    const backupId = `backup-${Date.now()}`;
+    const backupData = {
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      expiresAt: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 5 * 60 * 1000)), // 5 минут
+      homework: {}
+    };
+    
+    homeworkSnapshot.docs.forEach(doc => {
+      backupData.homework[doc.id] = doc.data();
+    });
+    
+    await db.collection("homework_backups").doc(backupId).set(backupData);
+    
+    // 4. Удаляем все документы
+    const batch = db.batch();
+    homeworkSnapshot.docs.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+    
+    await batch.commit();
+    
+    // 5. Увеличиваем версию
+    await db.collection("system").doc("version").set({
+      number: firebase.firestore.FieldValue.increment(1)
+    }, { merge: true });
+    
+    // 6. Очищаем локальный кеш
+    cachedHomework.clear();
+    
+    // 7. Закрываем модалку
+    closeClearHomeworkModal();
+    
+    // 8. Показываем уведомление с кнопкой отмены
+    showUndoNotification(backupId);
+    
+    // Realtime listener автоматически обновит данные
+  } catch (e) {
+    alert("Ошибка при очистке домашних заданий: " + e.message);
+  }
+};
+
+// Показать уведомление с возможностью отмены
+function showUndoNotification(backupId) {
+  // Создаем элемент уведомления
+  const notification = document.createElement('div');
+  notification.id = 'undoNotification';
+  notification.className = 'undo-notification';
+  
+  let timeLeft = 300; // 5 минут в секундах
+  
+  const updateTimer = () => {
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    
+    notification.innerHTML = `
+      <div class="undo-notification-content">
+        <div class="undo-notification-text">
+          <strong>Все домашние задания удалены</strong>
+          <div class="undo-notification-timer">Отменить можно в течение ${timeString}</div>
+        </div>
+        <button onclick="undoClearHomework('${backupId}')" class="undo-notification-btn">Отменить</button>
+      </div>
+    `;
+  };
+  
+  updateTimer();
+  document.body.appendChild(notification);
+  
+  // Показываем уведомление
+  setTimeout(() => notification.classList.add('visible'), 100);
+  
+  // Обновляем таймер каждую секунду
+  const timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimer();
+    
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      hideUndoNotification();
+      // Удаляем бэкап из Firestore
+      db.collection("homework_backups").doc(backupId).delete();
+    }
+  }, 1000);
+  
+  // Сохраняем interval ID для возможности очистки
+  notification.dataset.intervalId = timerInterval;
+}
+
+// Скрыть уведомление об отмене
+function hideUndoNotification() {
+  const notification = document.getElementById('undoNotification');
+  if (notification) {
+    // Очищаем таймер
+    const intervalId = notification.dataset.intervalId;
+    if (intervalId) {
+      clearInterval(parseInt(intervalId));
+    }
+    
+    notification.classList.remove('visible');
+    setTimeout(() => notification.remove(), 300);
+  }
+}
+
+// Отменить удаление домашних заданий
+window.undoClearHomework = async function(backupId) {
+  try {
+    // 1. Получаем бэкап
+    const backupDoc = await db.collection("homework_backups").doc(backupId).get();
+    
+    if (!backupDoc.exists) {
+      alert("Время для отмены истекло");
+      hideUndoNotification();
+      return;
+    }
+    
+    const backupData = backupDoc.data();
+    
+    // 2. Восстанавливаем все ДЗ
+    const batch = db.batch();
+    Object.keys(backupData.homework).forEach(docId => {
+      const hwRef = db.collection("homework").doc(docId);
+      batch.set(hwRef, backupData.homework[docId]);
+    });
+    
+    await batch.commit();
+    
+    // 3. Удаляем бэкап
+    await db.collection("homework_backups").doc(backupId).delete();
+    
+    // 4. Увеличиваем версию
+    await db.collection("system").doc("version").set({
+      number: firebase.firestore.FieldValue.increment(1)
+    }, { merge: true });
+    
+    // 5. Скрываем уведомление
+    hideUndoNotification();
+    
+    alert("Домашние задания успешно восстановлены!");
+    
+    // Realtime listener автоматически обновит данные
+  } catch (e) {
+    alert("Ошибка при восстановлении: " + e.message);
+  }
+};
+
+// Очистка истекших бэкапов
+async function cleanupExpiredBackups() {
+  try {
+    const now = firebase.firestore.Timestamp.now();
+    const expiredBackups = await db.collection("homework_backups")
+      .where("expiresAt", "<=", now)
+      .get();
+    
+    if (!expiredBackups.empty) {
+      const batch = db.batch();
+      expiredBackups.docs.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+      console.log(`Удалено ${expiredBackups.size} истекших бэкапов`);
+    }
+  } catch (e) {
+    console.error("Ошибка при очистке бэкапов:", e);
+  }
+}
 
 // Вызываем сохранение архива при каждом изменении расписания
 const originalSaveHomework = window.saveHomework;

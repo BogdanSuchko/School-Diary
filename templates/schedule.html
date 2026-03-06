@@ -194,6 +194,26 @@
         </div>
     </div>
 
+    <!-- Модальное окно очистки ДЗ (только для админа) -->
+    <div id="clearHomeworkModal" class="modal">
+        <div class="modal-content">
+            <h2>Очистить все домашние задания</h2>
+            <div class="modal-body">
+                <p style="color: rgba(228, 255, 236, 0.9); line-height: 1.6; margin-bottom: 16px;">
+                    Вы уверены, что хотите удалить все домашние задания?
+                </p>
+                <p style="color: rgba(251, 191, 36, 0.9); font-size: 14px; line-height: 1.5;">
+                    ⚠️ Перед удалением будет автоматически создан архив текущей недели.<br>
+                    Это действие нельзя отменить!
+                </p>
+            </div>
+            <div class="modal-buttons">
+                <button onclick="closeClearHomeworkModal()">Отмена</button>
+                <button onclick="clearAllHomework()" class="delete-btn">Очистить все ДЗ</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyARA6IQsVR8vhcWnvCScJaNA--IwsE4LCs",

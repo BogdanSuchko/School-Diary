@@ -35,3 +35,6 @@ firebaseCredentials.json
 .env
 
 repomix-output.xml
+
+# claude
+CLAUDE.md

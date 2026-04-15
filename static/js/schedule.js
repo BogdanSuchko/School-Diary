@@ -34,6 +34,12 @@ let scheduleListener = null;
 let homeworkListener = null;
 let saturdayListener = null;
 let changedElements = new Set(); // Отслеживание измененных элементов
+let secretClickCount = 0;
+let secretLastClickAt = 0;
+let secretAiCandidates = [];
+let secretAiExitTimer = null;
+let secretAiExitDeadline = 0;
+let lastFocusedHomeworkField = null;
 
 function setupRealtimeListeners() {
   // Слушаем изменения в расписании
@@ -218,6 +224,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("adminControls").style.display = "flex";
     document.getElementById("regularControls").style.display = "none";
     document.getElementById("mobileProposeHint").style.display = "none";
+    setupSecretAiTrigger();
     
     // Добавляем горячую клавишу Ctrl+L для очистки ДЗ
     document.addEventListener("keydown", (e) => {
@@ -248,6 +255,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Глобальный обработчик Enter для сохранения ДЗ (без Shift)
   const homeworkModal = document.getElementById("homeworkModal");
   if (homeworkModal) {
+    homeworkModal.addEventListener("focusin", (e) => {
+      const target = e.target;
+      if (!target) return;
+      const isClearableTextarea = target.tagName === "TEXTAREA";
+      const isClearableTextInput =
+        target.tagName === "INPUT" &&
+        (target.type === "text" || target.type === "search" || target.type === "url");
+      if (isClearableTextarea || isClearableTextInput) {
+        lastFocusedHomeworkField = target;
+      }
+    });
+
     homeworkModal.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
         const tagName = e.target.tagName;
@@ -589,9 +608,11 @@ window.showHomeworkModal = function (day, lesson, isLang, isSplit, index) {
   m.dataset.lesson = lesson;
   m.dataset.index = index;
   m.dataset.isNew = "false";
+  lastFocusedHomeworkField = null;
 
   document.getElementById("adminLessonName").value = lesson;
   document.getElementById("deleteLessonBtn").style.display = "block";
+  document.getElementById("quickClearHomeworkBtn").style.display = "inline-block";
 
   m.querySelectorAll('input[type="checkbox"]').forEach(
     (c) => (c.checked = false),
@@ -1115,6 +1136,7 @@ window.closeProposeModal = function () {
 
 window.onclick = function (e) {
   if (e.target.classList.contains("modal")) {
+    if (e.target.id === "secretAiModal") return;
     closeModal();
     closeProposeModal();
     closeClearHomeworkModal();
@@ -1130,9 +1152,11 @@ window.showAddLessonModal = function(day, index) {
   m.dataset.lesson = "";
   m.dataset.index = index;
   m.dataset.isNew = "true";
+  lastFocusedHomeworkField = null;
 
   document.getElementById("adminLessonName").value = "";
   document.getElementById("deleteLessonBtn").style.display = "none";
+  document.getElementById("quickClearHomeworkBtn").style.display = "none";
 
   m.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
   m.querySelectorAll("textarea").forEach(t => t.value = "");
@@ -1192,6 +1216,34 @@ window.deleteLesson = async function() {
     pendingLocalChanges.delete(`homework-${normalizeDocId(day, lesson)}`);
     alert("Ошибка при удалении урока: " + e.message);
   }
+};
+
+// Быстрая очистка ДЗ текущего урока в один клик
+window.quickClearHomework = async function() {
+  const m = document.getElementById("homeworkModal");
+  if (!m) return;
+
+  const activeField = lastFocusedHomeworkField;
+  const canClear =
+    activeField &&
+    m.contains(activeField) &&
+    (
+      activeField.tagName === "TEXTAREA" ||
+      (activeField.tagName === "INPUT" &&
+        (activeField.type === "text" ||
+          activeField.type === "search" ||
+          activeField.type === "url"))
+    );
+
+  if (!canClear) {
+    alert("Сначала нажмите в нужное поле ввода, потом на корзину.");
+    return;
+  }
+
+  // Локально очищаем только выбранное поле.
+  activeField.value = "";
+  activeField.dispatchEvent(new Event("input", { bubbles: true }));
+  activeField.focus();
 };
 
 // ============ АРХИВ РАСПИСАНИЯ ============
@@ -1619,6 +1671,445 @@ window.deleteLesson = async function() {
   await originalDeleteLesson.call(this);
   await saveWeeklyArchive();
 };
+
+// ============ СЕКРЕТНЫЙ AI-РЕЖИМ ============
+function setupSecretAiTrigger() {
+  const dateEl = document.getElementById("currentDate");
+  if (!dateEl) return;
+  dateEl.classList.add("secret-trigger");
+  dateEl.addEventListener("click", () => {
+    const now = Date.now();
+    if (now - secretLastClickAt > 1200) {
+      secretClickCount = 0;
+    }
+    secretLastClickAt = now;
+    secretClickCount += 1;
+    if (secretClickCount >= 3) {
+      secretClickCount = 0;
+      openSecretAiModal();
+    }
+  });
+
+  const fileInput = document.getElementById("secretAiFiles");
+  const scanBtn = document.getElementById("secretAiScanBtn");
+  const applyBtn = document.getElementById("secretAiApplyBtn");
+  const exitBtn = document.getElementById("secretAiExitBtn");
+
+  fileInput?.addEventListener("change", updateSecretFilesInfo);
+  scanBtn?.addEventListener("click", scanSecretAiImages);
+  applyBtn?.addEventListener("click", applySecretAiChanges);
+  exitBtn?.addEventListener("click", exitSecretAiMode);
+}
+
+function openSecretAiModal() {
+  const modal = document.getElementById("secretAiModal");
+  if (!modal) return;
+  document.body.classList.add("modal-open");
+  modal.style.display = "flex";
+  requestAnimationFrame(() => modal.classList.add("is-visible"));
+  renderSecretAiHistory();
+}
+
+function closeSecretAiModal() {
+  const modal = document.getElementById("secretAiModal");
+  if (!modal) return;
+  modal.classList.remove("is-visible");
+  setTimeout(() => {
+    modal.style.display = "none";
+    document.body.classList.remove("modal-open");
+  }, 250);
+}
+
+function updateSecretFilesInfo() {
+  const fileInput = document.getElementById("secretAiFiles");
+  const info = document.getElementById("secretAiFilesInfo");
+  if (!fileInput || !info) return;
+  const files = Array.from(fileInput.files || []).slice(0, 3);
+  if (!files.length) {
+    info.textContent = "Файлы не выбраны";
+    return;
+  }
+  info.textContent = files.map((f) => `${f.name} (${Math.round(f.size / 1024)} KB)`).join(" | ");
+}
+
+function setSecretStatus(text, isError = false) {
+  const status = document.getElementById("secretAiStatus");
+  if (!status) return;
+  status.textContent = text;
+  status.style.color = isError ? "#fecaca" : "#93c5fd";
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function escapeHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function buildPrettyDiff(beforeText, afterText) {
+  const before = String(beforeText || "");
+  const after = String(afterText || "");
+  if (before === after) return "Без изменений";
+  let prefix = 0;
+  while (prefix < before.length && prefix < after.length && before[prefix] === after[prefix]) {
+    prefix += 1;
+  }
+  let suffix = 0;
+  while (
+    suffix < before.length - prefix &&
+    suffix < after.length - prefix &&
+    before[before.length - 1 - suffix] === after[after.length - 1 - suffix]
+  ) {
+    suffix += 1;
+  }
+  const leftStart = before.slice(0, prefix);
+  const leftMid = before.slice(prefix, before.length - suffix);
+  const leftEnd = before.slice(before.length - suffix);
+  const rightMid = after.slice(prefix, after.length - suffix);
+  return `${escapeHtml(leftStart)}${leftMid ? `<del>${escapeHtml(leftMid)}</del>` : ""}${rightMid ? `<ins>${escapeHtml(rightMid)}</ins>` : ""}${escapeHtml(leftEnd)}`;
+}
+
+function getLessonByDayAndNumber(day, lessonNumber) {
+  const lessons = currentSchedule[day] || [];
+  const idx = Number(lessonNumber) - 1;
+  if (idx < 0 || idx >= lessons.length) return null;
+  return { lesson: lessons[idx], index: idx };
+}
+
+function getExistingHomeworkText(hw = {}) {
+  if (hw.text) return hw.text;
+  if (hw.englishText || hw.germanText) return [hw.englishText || "", hw.germanText || ""].filter(Boolean).join("\n");
+  if (hw.firstGroupText || hw.secondGroupText) return [hw.firstGroupText || "", hw.secondGroupText || ""].filter(Boolean).join("\n");
+  return "";
+}
+
+function sanitizeExtractedHomeworkText(rawText) {
+  const value = String(rawText || "").trim();
+  if (!value.includes(":")) return value;
+  const colonIdx = value.indexOf(":");
+  const prefix = value.slice(0, colonIdx).trim();
+  const rest = value.slice(colonIdx + 1).trim();
+  const looksLikeSubjectPrefix =
+    prefix.length > 0 &&
+    prefix.length <= 32 &&
+    !/\d/.test(prefix) &&
+    /^[A-Za-zА-Яа-яЁё.\-\s]+$/.test(prefix);
+  if (looksLikeSubjectPrefix && rest) return rest;
+  return value;
+}
+
+function buildAiHomeworkFieldsByLesson(lessonName, text, isTest, isExam, baseData = {}) {
+  const next = { ...baseData };
+  const value = text || "";
+  const isLang = lessonName.includes("Иностранный");
+  const isSplit = lessonName.includes("(м.)") || lessonName.includes("(д.)");
+
+  if (isLang) {
+    next.isLanguageLesson = true;
+    next.isSplitLesson = false;
+    next.englishText = value;
+    next.germanText = next.germanText || "";
+    next.englishTest = !!isTest;
+    next.englishExam = !!isExam;
+  } else if (isSplit) {
+    next.isLanguageLesson = false;
+    next.isSplitLesson = true;
+    next.firstGroupText = value;
+    next.secondGroupText = next.secondGroupText || "";
+    next.firstGroupTest = !!isTest;
+    next.firstGroupExam = !!isExam;
+  } else {
+    next.isLanguageLesson = false;
+    next.isSplitLesson = false;
+    next.text = value;
+    next.isTest = !!isTest;
+    next.isExam = !!isExam;
+  }
+  return next;
+}
+
+async function scanSecretAiImages() {
+  try {
+    const fileInput = document.getElementById("secretAiFiles");
+    const files = Array.from(fileInput?.files || []).slice(0, 3);
+    if (!files.length) {
+      setSecretStatus("Выберите хотя бы 1 фото", true);
+      return;
+    }
+    setSecretStatus("Отправляю фото в AI...");
+    const images = await Promise.all(files.map(fileToDataUrl));
+    const resp = await fetch("/api/ai-homework-extract", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ images }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      setSecretStatus(data.error || "Ошибка AI запроса", true);
+      return;
+    }
+    buildSecretCandidates(data.items || []);
+    renderSecretCandidates();
+    setSecretStatus(`Готово: распознано ${secretAiCandidates.length} записей`);
+  } catch (e) {
+    setSecretStatus(`Ошибка: ${e.message}`, true);
+  }
+}
+
+function buildSecretCandidates(items) {
+  secretAiCandidates = [];
+  for (const item of items) {
+    const mapped = getLessonByDayAndNumber(item.day, item.lessonNumber);
+    if (!mapped) continue;
+    const docId = normalizeDocId(item.day, mapped.lesson);
+    const existing = cachedHomework.get(docId) || {};
+    const beforeText = getExistingHomeworkText(existing);
+    secretAiCandidates.push({
+      id: `${item.day}-${item.lessonNumber}-${Math.random().toString(36).slice(2, 8)}`,
+      day: item.day,
+      lessonNumber: item.lessonNumber,
+      lesson: mapped.lesson,
+      docId,
+      confidence: item.confidence || 0,
+      before: {
+        ...existing,
+        text: beforeText,
+      },
+      after: {
+        text: sanitizeExtractedHomeworkText(item.homeworkText || ""),
+        isTest: !!item.isTest,
+        isExam: !!item.isExam,
+      },
+      mode: beforeText ? "replace" : "replace",
+    });
+  }
+}
+
+function renderSecretCandidates() {
+  const root = document.getElementById("secretAiPreview");
+  if (!root) return;
+  if (!secretAiCandidates.length) {
+    root.innerHTML = '<div class="archive-loading">Нет распознанных записей</div>';
+    return;
+  }
+  root.innerHTML = "";
+  secretAiCandidates.forEach((c) => {
+    const item = document.createElement("div");
+    item.className = "ai-candidate";
+    const conflictHint = c.before.text
+      ? '<span style="color:#fbbf24">Уже есть ДЗ: выбери оставить/заменить</span>'
+      : '<span style="color:#4ade80">Новое ДЗ</span>';
+    item.innerHTML = `
+      <div class="ai-candidate-head">
+        <strong>${escapeHtml(c.day)} • ${escapeHtml(c.lesson)}</strong>
+        <span>Уверенность: ${(c.confidence * 100).toFixed(0)}%</span>
+      </div>
+      <div>${conflictHint}</div>
+      <div class="ai-candidate-inputs">
+        <input data-role="day" value="${escapeHtml(c.day)}" />
+        <input data-role="lessonName" value="${escapeHtml(c.lesson)}" readonly />
+        <select data-role="mode">
+          <option value="keep" ${c.mode === "keep" ? "selected" : ""}>Оставить прошлое</option>
+          <option value="replace" ${c.mode === "replace" ? "selected" : ""}>Заменить</option>
+        </select>
+      </div>
+      <textarea data-role="text">${escapeHtml(c.after.text)}</textarea>
+      <div style="display:flex; gap:12px; margin-top:8px;">
+        <label><input type="checkbox" data-role="isTest" ${c.after.isTest ? "checked" : ""}> Самостоятельная</label>
+        <label><input type="checkbox" data-role="isExam" ${c.after.isExam ? "checked" : ""}> Контрольная</label>
+      </div>
+      <div class="ai-diff">${buildPrettyDiff(c.before.text, c.mode === "keep" ? c.before.text : c.after.text)}</div>
+    `;
+
+    item.querySelector('[data-role="mode"]').addEventListener("change", (e) => {
+      c.mode = e.target.value;
+      item.querySelector(".ai-diff").innerHTML = buildPrettyDiff(c.before.text, c.mode === "keep" ? c.before.text : c.after.text);
+    });
+    item.querySelector('[data-role="day"]').addEventListener("input", (e) => (c.day = e.target.value.trim()));
+    item.querySelector('[data-role="text"]').addEventListener("input", (e) => {
+      c.after.text = e.target.value;
+      item.querySelector(".ai-diff").innerHTML = buildPrettyDiff(c.before.text, c.mode === "keep" ? c.before.text : c.after.text);
+    });
+    item.querySelector('[data-role="isTest"]').addEventListener("change", (e) => (c.after.isTest = e.target.checked));
+    item.querySelector('[data-role="isExam"]').addEventListener("change", (e) => (c.after.isExam = e.target.checked));
+    root.appendChild(item);
+  });
+}
+
+async function applySecretAiChanges() {
+  try {
+    if (!secretAiCandidates.length) {
+      setSecretStatus("Сначала распознайте фото", true);
+      return;
+    }
+    const changes = [];
+    const batch = db.batch();
+    for (const c of secretAiCandidates) {
+      const mapped = getLessonByDayAndNumber(c.day, c.lessonNumber);
+      if (!mapped) continue;
+      const docId = normalizeDocId(c.day, mapped.lesson);
+      const docRef = db.collection("homework").doc(docId);
+      const before = cachedHomework.get(docId) || null;
+      let nextData = before ? { ...before } : {};
+
+      if (c.mode === "replace") {
+        nextData = buildAiHomeworkFieldsByLesson(
+          mapped.lesson,
+          c.after.text,
+          c.after.isTest,
+          c.after.isExam,
+          {
+            ...nextData,
+            day: c.day,
+            lesson: mapped.lesson,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          },
+        );
+      }
+      if (c.mode === "keep") {
+        continue;
+      }
+
+      batch.set(docRef, nextData, { merge: true });
+      changes.push({
+        docId,
+        day: c.day,
+        lesson: mapped.lesson,
+        before: before || null,
+        after: {
+          day: c.day,
+          lesson: mapped.lesson,
+          text: getExistingHomeworkText(nextData),
+          isTest: !!(nextData.isTest || nextData.englishTest || nextData.firstGroupTest),
+          isExam: !!(nextData.isExam || nextData.englishExam || nextData.firstGroupExam),
+        },
+      });
+    }
+    if (!changes.length) {
+      setSecretStatus("Нечего применять");
+      return;
+    }
+    await batch.commit();
+    await db.collection("system").doc("version").set(
+      { number: firebase.firestore.FieldValue.increment(1) },
+      { merge: true },
+    );
+    await db.collection("ai_import_history").add({
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      source: "secret-ai-tool",
+      changes,
+      reverted: false,
+    });
+    setSecretStatus(`Применено: ${changes.length} изменений`);
+    secretAiCandidates = [];
+    renderSecretCandidates();
+    await renderSecretAiHistory();
+  } catch (e) {
+    setSecretStatus(`Ошибка применения: ${e.message}`, true);
+  }
+}
+
+async function renderSecretAiHistory() {
+  const root = document.getElementById("secretAiHistory");
+  if (!root) return;
+  root.innerHTML = '<div class="archive-loading">Загрузка...</div>';
+  try {
+    const snap = await db.collection("ai_import_history").orderBy("createdAt", "desc").limit(15).get();
+    if (snap.empty) {
+      root.innerHTML = '<div class="archive-loading">Пока пусто</div>';
+      return;
+    }
+    root.innerHTML = "";
+    snap.forEach((doc) => {
+      const data = doc.data();
+      const ts = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
+      const item = document.createElement("div");
+      item.className = "secret-ai-history-item";
+      item.innerHTML = `
+        <div class="secret-ai-history-meta">
+          ${ts.toLocaleString("ru-RU")} • ${data.changes?.length || 0} изменений ${data.reverted ? "• откат применен" : ""}
+        </div>
+        <button ${data.reverted ? "disabled" : ""}>Откатить</button>
+      `;
+      const btn = item.querySelector("button");
+      btn.addEventListener("click", () => rollbackSecretAiHistory(doc.id));
+      root.appendChild(item);
+    });
+  } catch (e) {
+    root.innerHTML = `<div class="archive-loading">Ошибка истории: ${e.message}</div>`;
+  }
+}
+
+async function rollbackSecretAiHistory(historyId) {
+  try {
+    if (!confirm("Откатить это AI-внесение?")) return;
+    const ref = db.collection("ai_import_history").doc(historyId);
+    const doc = await ref.get();
+    if (!doc.exists) return;
+    const data = doc.data();
+    if (data.reverted) return;
+    const batch = db.batch();
+    (data.changes || []).forEach((change) => {
+      const hwRef = db.collection("homework").doc(change.docId);
+      if (!change.before) {
+        batch.delete(hwRef);
+      } else {
+        batch.set(hwRef, change.before);
+      }
+    });
+    batch.update(ref, {
+      reverted: true,
+      revertedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    await batch.commit();
+    await db.collection("system").doc("version").set(
+      { number: firebase.firestore.FieldValue.increment(1) },
+      { merge: true },
+    );
+    setSecretStatus("Откат выполнен");
+    await renderSecretAiHistory();
+  } catch (e) {
+    setSecretStatus(`Ошибка отката: ${e.message}`, true);
+  }
+}
+
+function exitSecretAiMode() {
+  const exitBtn = document.getElementById("secretAiExitBtn");
+  if (!exitBtn) return;
+  const now = Date.now();
+  if (!secretAiExitDeadline || now > secretAiExitDeadline) {
+    secretAiExitDeadline = now + 2800;
+    if (secretAiExitTimer) clearInterval(secretAiExitTimer);
+    secretAiExitTimer = setInterval(() => {
+      const leftMs = Math.max(0, secretAiExitDeadline - Date.now());
+      const leftSec = (leftMs / 1000).toFixed(1);
+      exitBtn.textContent = `Нажмите снова для выхода (${leftSec})`;
+      if (leftMs <= 0) {
+        clearInterval(secretAiExitTimer);
+        secretAiExitTimer = null;
+        secretAiExitDeadline = 0;
+        exitBtn.textContent = "Сохранить и выйти";
+      }
+    }, 50);
+    return;
+  }
+  if (secretAiExitTimer) clearInterval(secretAiExitTimer);
+  secretAiExitTimer = null;
+  secretAiExitDeadline = 0;
+  exitBtn.textContent = "Сохранить и выйти";
+  closeSecretAiModal();
+}
 
 
 // ============ ИНДИКАТОР ТЕКУЩЕГО УРОКА ============

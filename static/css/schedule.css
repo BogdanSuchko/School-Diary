@@ -463,6 +463,24 @@ h1 {
     background: rgba(239, 68, 68, 0.3);
 }
 
+.modal-buttons button.quick-clear-btn {
+    background: rgba(251, 191, 36, 0.18);
+    color: #fde68a;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    font-size: 20px;
+    line-height: 1;
+    width: 46px;
+    min-width: 46px;
+    padding: 10px 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-buttons button.quick-clear-btn:hover {
+    background: rgba(251, 191, 36, 0.28);
+}
+
 /* Пустая карточка для добавления урока */
 .add-lesson-item {
     padding: 20px 18px;
@@ -1037,6 +1055,143 @@ body:has(#adminControls:not([style*="display: none"])) .mobile-hint {
     display: none !important;
 }
 
+/* --- СЕКРЕТНЫЙ AI РЕЖИМ --- */
+#currentDate.secret-trigger {
+    cursor: pointer;
+}
+
+.secret-ai-content {
+    max-width: 980px;
+}
+
+.secret-ai-hint {
+    margin: 0 0 16px;
+    color: rgba(228, 255, 236, 0.72);
+}
+
+.secret-ai-uploader {
+    background: rgba(24, 24, 33, 0.5);
+    border: 1px solid rgba(244, 244, 245, 0.12);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 12px;
+}
+
+.secret-ai-files-info {
+    margin-top: 10px;
+    color: rgba(228, 255, 236, 0.65);
+    font-size: 14px;
+}
+
+.secret-ai-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.secret-ai-status {
+    min-height: 22px;
+    margin-bottom: 10px;
+    color: #93c5fd;
+}
+
+.secret-ai-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.ai-candidate {
+    background: rgba(24, 24, 33, 0.58);
+    border: 1px solid rgba(244, 244, 245, 0.1);
+    border-radius: 8px;
+    padding: 14px;
+}
+
+.ai-candidate-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.ai-candidate-inputs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.ai-candidate-inputs input,
+.ai-candidate-inputs select,
+.ai-candidate textarea {
+    width: 100%;
+    box-sizing: border-box;
+    background: rgba(16, 48, 30, 0.68);
+    border: 1px solid rgba(90, 188, 126, 0.4);
+    color: #fff;
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+
+.ai-candidate textarea {
+    min-height: 84px;
+    margin-top: 8px;
+}
+
+.ai-diff {
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+.ai-diff del {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fecaca;
+    text-decoration: line-through;
+}
+
+.ai-diff ins {
+    background: rgba(34, 197, 94, 0.2);
+    color: #bbf7d0;
+    text-decoration: none;
+}
+
+.secret-ai-history {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.secret-ai-history-item {
+    background: rgba(24, 24, 33, 0.58);
+    border: 1px solid rgba(244, 244, 245, 0.1);
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.secret-ai-history-meta {
+    color: rgba(228, 255, 236, 0.72);
+    font-size: 14px;
+}
+
+.secret-ai-history-item button {
+    background: rgba(251, 191, 36, 0.2);
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    color: #fde68a;
+    border-radius: 6px;
+    padding: 8px 10px;
+    cursor: pointer;
+}
+
 /* --- АДАПТИВНОСТЬ --- */
 @media (max-width: 768px) {
     .container { padding: 24px 16px 80px; }
@@ -1054,6 +1209,7 @@ body:has(#adminControls:not([style*="display: none"])) .mobile-hint {
     .modal { padding: 16px; }
     .modal-content { max-height: 95vh; padding: 24px 20px; }
     .modal-buttons { flex-direction: column-reverse; align-items: stretch; }
+    .ai-candidate-inputs { grid-template-columns: 1fr; }
 }
 
 @media (min-width: 769px) {

@@ -131,6 +131,9 @@
             </div>
             <div class="modal-buttons">
                 <button onclick="deleteLesson()" class="delete-btn" id="deleteLessonBtn" style="margin-right: auto;">Удалить урок</button>
+                <button onclick="quickClearHomework()" class="quick-clear-btn" id="quickClearHomeworkBtn" title="Сначала выберите поле, затем очистите только его">
+                    🗑
+                </button>
                 <button onclick="closeModal()">Отмена</button>
                 <button onclick="saveHomework()" class="primary">Сохранить</button>
             </div>
@@ -210,6 +213,35 @@
             <div class="modal-buttons">
                 <button onclick="closeClearHomeworkModal()">Отмена</button>
                 <button onclick="clearAllHomework()" class="delete-btn">Очистить все ДЗ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Секретный AI-импорт ДЗ -->
+    <div id="secretAiModal" class="modal secret-ai-modal">
+        <div class="modal-content secret-ai-content">
+            <h2>AI-внос ДЗ (секретный режим)</h2>
+            <div class="modal-body">
+                <p class="secret-ai-hint">Загрузите до 3 фото, проверьте распознавание, отредактируйте и примените.</p>
+
+                <div class="secret-ai-uploader">
+                    <input id="secretAiFiles" type="file" accept="image/*" multiple>
+                    <div id="secretAiFilesInfo" class="secret-ai-files-info">Файлы не выбраны</div>
+                </div>
+
+                <div class="secret-ai-actions">
+                    <button id="secretAiScanBtn" class="primary">Внести ДЗ через AI</button>
+                    <button id="secretAiApplyBtn" class="primary">Применить изменения</button>
+                </div>
+
+                <div id="secretAiStatus" class="secret-ai-status"></div>
+                <div id="secretAiPreview" class="secret-ai-preview"></div>
+
+                <h3>История AI-внесений</h3>
+                <div id="secretAiHistory" class="secret-ai-history"></div>
+            </div>
+            <div class="modal-buttons">
+                <button id="secretAiExitBtn" class="delete-btn">Сохранить и выйти</button>
             </div>
         </div>
     </div>

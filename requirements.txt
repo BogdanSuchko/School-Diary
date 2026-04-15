@@ -2,3 +2,4 @@ flask
 firebase-admin
 gunicorn
 python-dotenv
+APScheduler

@@ -240,9 +240,9 @@ def ai_homework_extract():
         if len(images) > 3:
             return jsonify({"error": "Можно загрузить максимум 3 фото"}), 400
 
-        api_key = os.getenv("COMET_API_KEY")
+        api_key = os.getenv("OPENROUTER_API_KEY")
         if not api_key:
-            return jsonify({"error": "COMET_API_KEY не настроен на сервере"}), 500
+            return jsonify({"error": "OPENROUTER_API_KEY не настроен на сервере"}), 500
 
         content_parts = [
             {
@@ -277,18 +277,20 @@ def ai_homework_extract():
         for img in images:
             content_parts.append({"type": "image_url", "image_url": {"url": img}})
 
-        comet_payload = {
-            "model": "gemini-3.1-flash-lite-preview-thinking",
+        openrouter_payload = {
+            "model": "google/gemini-3.1-flash-lite-preview",
             "messages": [{"role": "user", "content": content_parts}],
             "temperature": 0.1,
         }
 
         req = urlrequest.Request(
-            "https://api.cometapi.com/v1/chat/completions",
-            data=json.dumps(comet_payload).encode("utf-8"),
+            "https://openrouter.ai/api/v1/chat/completions",
+            data=json.dumps(openrouter_payload).encode("utf-8"),
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
+                "HTTP-Referer": "http://localhost",
+                "X-Title": "School-Diary",
             },
             method="POST",
         )

@@ -1,9 +1,9 @@
 {
   "profile": "openai",
   "env": {
-    "OPENAI_BASE_URL": "https://api.cometapi.com/v1",
-    "OPENAI_MODEL": "gemini-3.1-pro-preview",
-    "OPENAI_API_KEY": "sk-qsb49lZgAodol8JVLEkKgHYxGLOIBarayOjIEiHiovnjqnV4"
+    "OPENAI_BASE_URL": "https://openrouter.ai/api/v1",
+    "OPENAI_MODEL": "openrouter/elephant-alpha",
+    "OPENAI_API_KEY": "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"
   },
-  "createdAt": "2026-04-15T17:19:35.559Z"
+  "createdAt": "2026-04-18T12:58:22.655Z"
 }
